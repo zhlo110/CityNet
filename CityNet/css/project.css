@@ -1,0 +1,151 @@
+﻿.button.add
+{
+  background-image: url(images/add.gif); 
+  background-position:center;
+  height:18px;
+  width:18px; 
+}
+.button.delete
+{
+  background-image: url(images/delete.gif);
+  background-position:center;
+  height:18px;
+  width:18px; 
+}
+.button.moveup
+{
+  background-image: url(images/moveup.gif); 
+  background-position:center;
+  height:18px;
+  width:18px; 
+}
+
+.button.modify
+{
+  background-image: url(images/modify.gif); 
+  background-position:center;
+  height:18px;
+  width:18px; 
+}
+
+.button.refresh
+{
+  background-image: url(images/refresh.gif);
+  background-position:center;
+  height:18px;
+  width:18px;  
+}
+
+.button.search
+{
+  background-image: url(images/search.gif); 
+  background-position:center;
+  height:18px;
+  width:18px; 
+}
+
+.button.download
+{
+  background-image: url(images/download.gif); 
+  background-position:center;
+  height:18px;
+  width:18px; 
+}
+
+.button.detail
+{
+  background-image: url(images/detail.gif); 
+  background-position:center;
+  vertical-align:middle;
+  height:18px;
+  width:18px; 
+}
+
+.button.database
+{
+  background-image: url(images/database.gif); 
+  background-position:center;
+  height:18px;
+  width:18px; 
+}
+
+.button.next
+{
+  background-image: url(images/next.gif); 
+  background-position:center;
+  height:18px;
+  width:18px; 
+}
+
+.button.pref
+{
+  background-image: url(images/pref.gif); 
+  background-position:center;
+  height:18px;
+  width:18px; 
+}
+
+.button.return
+{
+  background-image: url(images/return.gif); 
+  background-position:center;
+  height:18px;
+  width:18px; 
+}
+
+.button.user
+{
+  background-image: url(images/user.gif); 
+  background-position:center;
+  height:18px;
+  width:18px; 
+}
+
+
+
+.button.Home
+{
+  background-image: url(images/Home.png); 
+}
+
+.x-tree-checkbox-indeterminate {
+    background-image: url(images/indeterminate.gif); 
+}
+
+.x-panel-header {
+    font-size: 20px;
+   
+}
+
+.documentcell
+{
+    background-color: #a4a4a4;
+}
+
+.maplabel
+{
+    color:#648cfb;
+    font-size: 14px;
+    white-space:nowrap;
+    opacity:1.0;
+}
+
+tr.x-grid-red .x-grid-td{
+background:#ffe9da;
+}
+tr.x-grid-green .x-grid-td{
+background:#ddffcf;
+}
+
+.height .x-grid-cell {  
+      vertical-align:middle;
+} 
+
+.info.legend{
+    background-color: white;
+    padding: 5px;
+}
+.info.legend .color{
+    display: inline-block;
+    width: 10px;height: 10px;
+}

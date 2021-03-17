@@ -1,0 +1,27 @@
+﻿<%@ Master Language="C#" Inherits="System.Web.Mvc.ViewMasterPage" %>
+<!DOCTYPE html>
+<html lang="zh">
+    <head id="Head1" runat="server">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <meta charset="utf-8" />
+        <title><asp:ContentPlaceHolder ID="TitleContent" runat="server" /></title>
+        <meta name="viewport" content="width=device-width" />
+        <script src="/Extjs5.1/ext-all-debug.js" type="text/javascript"></script>
+        <script src="/Extjs5.1/packages/ext-locale/build/ext-locale-zh_CN.js" type="text/javascript"></script>
+        <link href="/Extjs5.1/packages/ext-theme-classic/build/resources/ext-theme-classic-all.css" rel="stylesheet" />
+        <link href="/css/project.css" rel="stylesheet" />
+        <link href="/css/blink.css" rel="stylesheet" />
+        
+        <!--%: Styles.Render("~/Content/css") % 一定要删除--> 
+        <!-- %: Scripts.Render("~/bundles/modernizr") %一定要删除-->
+    </head>
+    <body>
+        <header>
+        </header>
+        <div id="main">
+            <asp:ContentPlaceHolder ID="MainContent" runat="server" />
+        </div>
+        
+        <asp:ContentPlaceHolder ID="ScriptsSection" runat="server" />
+    </body>
+</html>
