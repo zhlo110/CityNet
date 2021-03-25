@@ -39,8 +39,9 @@ namespace CityNet.service.task
                     if (nCount > 0)
                     {
                         DataRow row = dt.Rows[0];
-                        editable = int.Parse(row["editable"].ToString());
-                        int isEnd = int.Parse(row["isEnd"].ToString());
+                        int.TryParse(row["editable"].ToString(),out editable);
+                        int isEnd = 0;
+                        int.TryParse(row["isEnd"].ToString(), out isEnd);
                         if (isEnd > 0)
                         {
                             editable = 0;

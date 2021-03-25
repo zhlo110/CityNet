@@ -27,7 +27,8 @@ Ext.define('Ext.ux.CheckboxTree', {
     alias: ['widget.checkboxtree'],
     scrollable: 'y',
     rootVisible: false,
-    submitcount:0,
+    submitcount: 0,
+    mask:null,
     viewConfig: {
         preserveScrollOnRefresh: true,//
         preserveScrollOnReload: true,//
@@ -44,24 +45,26 @@ Ext.define('Ext.ux.CheckboxTree', {
         "checkchange": function (node, checked, eOpts) {
             //console.log(node.data.text);
             //     node.set('indeterminate', false);
-            var myMask =  Ext.getCmp('check_task_lock');
-            if(myMask==null)
-            {
-                myMask = new Ext.LoadMask({
-                    id:'check_task_lock',
-                    target: this,
-                    msg: '正在更新树列表，请稍后！'});
-            }
-            myMask.show();
-            var me = this;
-            me.submitcount = 0;
 
+            var me = this;
+           
+            //check_task_lock
+            me.mask = new Ext.LoadMask({
+                    target: this,
+                    removeMask:true, 
+                    msg: '正在更新树列表，请稍后！'
+                });
+            me.mask.show();
+            
+            me.submitcount = 0;
+            
             this.travelChildrenChecked(node, checked, eOpts);
             node.set('indeterminate', false);
             node.set('checked', !checked);
             node.set('checked', checked);
             this.travelParentChecked(node, checked, eOpts);
-            this.savefunction(node,checked,false);
+            this.savefunction(node, checked, false);
+            
         }
     },
     /** 递归遍历父节点 **/

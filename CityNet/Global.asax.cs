@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CityNet.Utility;
+using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
@@ -40,6 +41,7 @@ namespace CityNet
 
             RegisterGlobalFilters(GlobalFilters.Filters);
             RegisterRoutes(RouteTable.Routes);
+            AsposeLicense.active();
         }
     }
 }

@@ -1,0 +1,206 @@
+﻿//创建视图Action_Group_View
+use CityNet;
+go
+create view Action_Group_View as
+(
+select finaltable.*,u.RealName from 
+(select alldata.*,AC.ActionClassName,AC.ActionType,AC.Priority as acpriority from
+(select action_rel.*,G.GroupName from
+(select A.*,AG.GroupID from [Action] A left join [Action_Group] AG on A.ID = AG.ActionID) action_rel 
+left join [Group] G on action_rel.GroupID=G.ID) alldata
+left join [ActionClass] AC on alldata.ActionGroupID = AC.ID) finaltable 
+left join [User] U on finaltable.CreateID = U.ID)
+
+//删除视图Action_Group_View
+use CityNet;
+go
+drop view Action_Group_View;
+
+//创建视图User_Group_View
+use CityNet;
+go
+create view User_Group_View as
+(
+ select user_department.*,d.DepartmentName from
+(select user_department_rel.*,ud.DepartmentID from
+(select usergroup.*,g.RealGroupName from 
+(select u.*,ug.GroupID from [User] u left join [User_Group] ug on u.ID = ug.UserID) usergroup  
+left join [Group] g on g.ID = usergroup.GroupID) user_department_rel
+left join User_Department ud on ud.UserID = user_department_rel.ID) user_department left join Department d on d.ID = user_department.DepartmentID
+);
+
+//删除视图User_Group_View
+use CityNet;
+go
+drop view User_Group_View;
+
+
+
+use CityNet;
+go
+create view Task_View as
+(
+select u4.*,UDV2.DepartmentID as AuditDID,UDV2.DepartmentName as AuditDName from
+(select U3.*,UDV1.DepartmentID as CreateDID,UDV1.DepartmentName as CreateDName from
+(select U2.*,SS.Name as statename,SS.Priority as priority,SS.Editable as editable from
+(select U1.*,US.RealName as auditname from
+(select t.*,u.RealName as createname from Task t left join [User] u on t.CreateID = u.ID) U1
+left join [User] US on U1.AuditID = US.ID) U2 
+left join SubmitState SS on U2.StateID = SS.ID) U3
+left join User_Department_View UDV1 on U3.CreateID = UDV1.ID) U4
+left join User_Department_View UDV2 on U4.AuditID = UDV2.ID
+)
+
+use CityNet;
+go
+drop view Task_View;
+
+
+use CityNet;
+go
+create view User_Department_View as
+(
+select U1.*,D.DepartmentName from
+(select U.ID,U.RealName,UD.DepartmentID from [User] U left join User_Department UD on U.ID = UD.UserID) U1 left join 
+Department D on U1.DepartmentID=D.ID
+)
+
+use CityNet;
+go
+drop view User_Department_View;
+
+
+use CityNet;
+go
+create view TableScheme_View as
+(
+select *,(select count(trs.ID) from TableRowScheme trs where trs.TableSchemeID = ts.ID) as RowNum from TableScheme ts
+);
+
+use CityNet;
+go
+drop view TableScheme_View;
+
+use CityNet;
+go
+create view Point_View as
+(
+select mp.*,p.PointName as PointName ,p.FirstMeasureTime as FirstTime,
+p.Description as PointDes,p.longitude as longitude,p.latitude as latitude,
+p.Sign as Sign
+from MeasurePoint mp left join Point p on p.ID = mp.PointID
+);
+
+use CityNet;
+go
+drop view Point_View;
+
+
+use CityNet;
+go
+create view Document_User_View as
+(
+select d.*,tv.UserID as UserID from Document d left join Task_Visible tv on tv.TaskID = d.TaskID
+);
+
+use CityNet;
+go
+drop view Document_User_View;
+
+
+use CityNet;
+go
+create view Point_User_View as
+(
+select pv.*,tv.UserID as UserID from Point_View pv left join Task_Visible tv on tv.TaskID = pv.TaskID
+);
+
+use CityNet;
+go
+drop view Point_User_View;
+
+
+use CityNet;
+go
+create view Point_Number_View as
+(
+select p.*,(select COUNT(ID) from MeasurePoint mp where mp.PointID=p.ID) as Num from Point p
+);
+
+use CityNet;
+go
+drop view Point_Number_View;
+
+
+
+use CityNet;
+go
+create view Approve_User_View as
+(
+select U2.*,t.taskType from 
+(select U1.*,UDV1.RealName as auditor,UDV1.DepartmentName as auditordep from 
+(select A.*,UDV.RealName as creator,UDV.DepartmentName as creatordep from Approve A 
+left join User_Department_View UDV on A.SubmitID=UDV.ID) U1
+left join User_Department_View UDV1 on U1.AuditID=UDV1.ID) U2
+left join Task t on U2.TaskID=t.ID
+);
+
+use CityNet;
+go
+drop view Approve_User_View;
+
+
+
+use CityNet;
+go
+create view Project_User_View as
+(
+select PS.*, U.UserName as UserName from Project_Session PS left join [User] U on PS.CreatorID=U.ID
+)
+
+use CityNet;
+go
+drop view Project_User_View;
+
+
+//表格去重复
+use CityNet;
+delete Task_Visible where [ID] not in(
+select Max(ID) from Task_Visible group by (
+convert(varchar(50),TaskID)+','+convert(varchar(50),UserID)))
+
+use CityNet;
+EXECUTE sp_refreshview 'Action_Group_View';
+EXECUTE sp_refreshview 'User_Group_View';
+EXECUTE sp_refreshview 'Task_View';
+EXECUTE sp_refreshview 'User_Department_View';
+EXECUTE sp_refreshview 'TableScheme_View';
+EXECUTE sp_refreshview 'Point_View';
+EXECUTE sp_refreshview 'Document_User_View';
+EXECUTE sp_refreshview 'Point_User_View';
+EXECUTE sp_refreshview 'Point_Number_View';
+EXECUTE sp_refreshview 'Approve_User_View';
+
+//部署清除数据库
+delete FROM [CityNet].[dbo].[Approve];
+dbcc checkident('[CityNet].[dbo].[Approve]',reseed,0);
+delete FROM [CityNet].[dbo].[ApproveDocument];
+dbcc checkident('[CityNet].[dbo].[ApproveDocument]',reseed,0);
+delete FROM [CityNet].[dbo].[Document];
+dbcc checkident('[CityNet].[dbo].[Document]',reseed,0);
+delete FROM [CityNet].[dbo].[DocumentDataRow];
+dbcc checkident('[CityNet].[dbo].[DocumentDataRow]',reseed,0);
+delete FROM [CityNet].[dbo].[DocumentTable];
+dbcc checkident('[CityNet].[dbo].[DocumentTable]',reseed,0);
+delete FROM [CityNet].[dbo].[MeasurePoint];
+dbcc checkident('[CityNet].[dbo].[MeasurePoint]',reseed,0);
+delete FROM [CityNet].[dbo].[Point];
+dbcc checkident('[CityNet].[dbo].[Point]',reseed,0);
+delete FROM [CityNet].[dbo].[PointAlarm];
+dbcc checkident('[CityNet].[dbo].[PointAlarm]',reseed,0);
+delete FROM [CityNet].[dbo].[ProgressBar];
+dbcc checkident('[CityNet].[dbo].[ProgressBar]',reseed,0);
+delete FROM [CityNet].[dbo].[Task];
+dbcc checkident('[CityNet].[dbo].[Task]',reseed,0);
+delete FROM [CityNet].[dbo].[Task_Visible];
+dbcc checkident('[CityNet].[dbo].[Task_Visible]',reseed,0);

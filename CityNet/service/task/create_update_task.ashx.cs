@@ -36,7 +36,7 @@ namespace CityNet.service.task
                 sql = "select MIN(ID) from SubmitState";
                 int stateid = DBAccess.QueryStatistic(sql, null);
 
-                sql = "insert Task(TaskName,CreateID,StateID,FirstSubmitTime,step,stepDescription,isEnd,taskType) " +
+                sql = "insert into Task(TaskName,CreateID,StateID,FirstSubmitTime,step,stepDescription,isEnd,taskType) " +
                     "values(@tn,@cid,@sid,@time,@st,@stdes,@end,@ttp)";
 
                 list.Add(new DictionaryEntry("@tn", taskname));

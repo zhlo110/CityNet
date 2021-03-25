@@ -336,6 +336,39 @@
     <Compile Include="service\progress\get_progressbar_info.ashx.cs">
       <DependentUpon>get_progressbar_info.ashx</DependentUpon>
     </Compile>
+    <Compile Include="service\projectsession\build_department_user_tree.ashx.cs">
+      <DependentUpon>build_department_user_tree.ashx</DependentUpon>
+    </Compile>
+    <Compile Include="service\projectsession\build_session_tree.ashx.cs">
+      <DependentUpon>build_session_tree.ashx</DependentUpon>
+    </Compile>
+    <Compile Include="service\projectsession\build_session_tree_by_taskID.ashx.cs">
+      <DependentUpon>build_session_tree_by_taskID.ashx</DependentUpon>
+    </Compile>
+    <Compile Include="service\projectsession\check_sessionhaschild.ashx.cs">
+      <DependentUpon>check_sessionhaschild.ashx</DependentUpon>
+    </Compile>
+    <Compile Include="service\projectsession\delete_sesssion_byid.ashx.cs">
+      <DependentUpon>delete_sesssion_byid.ashx</DependentUpon>
+    </Compile>
+    <Compile Include="service\projectsession\insert_updata_projectsession.ashx.cs">
+      <DependentUpon>insert_updata_projectsession.ashx</DependentUpon>
+    </Compile>
+    <Compile Include="service\projectsession\save_session_department.ashx.cs">
+      <DependentUpon>save_session_department.ashx</DependentUpon>
+    </Compile>
+    <Compile Include="service\projectsession\save_session_task.ashx.cs">
+      <DependentUpon>save_session_task.ashx</DependentUpon>
+    </Compile>
+    <Compile Include="service\projectsession\search_session.ashx.cs">
+      <DependentUpon>search_session.ashx</DependentUpon>
+    </Compile>
+    <Compile Include="service\projectsession\set_task_to_user.ashx.cs">
+      <DependentUpon>set_task_to_user.ashx</DependentUpon>
+    </Compile>
+    <Compile Include="service\projectsession\update_session_parent.ashx.cs">
+      <DependentUpon>update_session_parent.ashx</DependentUpon>
+    </Compile>
     <Compile Include="service\task\can_eidtable.ashx.cs">
       <DependentUpon>can_eidtable.ashx</DependentUpon>
     </Compile>
@@ -486,6 +519,7 @@
     <Compile Include="Utility\Point.cs" />
     <Compile Include="Utility\ProgressBarUtil.cs" />
     <Compile Include="Utility\ServerConfig.cs" />
+    <Compile Include="Utility\SessionNode.cs" />
     <Compile Include="Utility\TreeNode.cs" />
     <Compile Include="Utility\UpdateAlarm.cs" />
   </ItemGroup>
@@ -544,6 +578,7 @@
     <Content Include="Content\themes\base\minified\jquery.ui.slider.min.css" />
     <Content Include="Content\themes\base\minified\jquery.ui.tabs.min.css" />
     <Content Include="Content\themes\base\minified\jquery.ui.theme.min.css" />
+    <Content Include="createdbview\dbview.txt" />
     <Content Include="css\blink.css" />
     <Content Include="css\images\add.gif" />
     <Content Include="css\images\approve.png" />
@@ -5156,6 +5191,8 @@
     <Content Include="js\index.js" />
     <Content Include="js\login.js" />
     <Content Include="js\manager.js" />
+    <Content Include="js\ProjectSession\projectsession.js" />
+    <Content Include="js\ProjectSession\sessionworker.js" />
     <Content Include="js\project_ui.js" />
     <Content Include="js\register.js" />
     <Content Include="js\Resource\approvepanel.js" />
@@ -5402,6 +5439,17 @@
     <Content Include="service\user\updata_password.ashx" />
     <Content Include="service\user\update_person_info.ashx" />
     <Content Include="Views\Shared\Site.Master" />
+    <Content Include="service\projectsession\build_session_tree.ashx" />
+    <Content Include="service\projectsession\insert_updata_projectsession.ashx" />
+    <Content Include="service\projectsession\check_sessionhaschild.ashx" />
+    <Content Include="service\projectsession\delete_sesssion_byid.ashx" />
+    <Content Include="service\projectsession\update_session_parent.ashx" />
+    <Content Include="service\projectsession\search_session.ashx" />
+    <Content Include="service\projectsession\build_session_tree_by_taskID.ashx" />
+    <Content Include="service\projectsession\save_session_task.ashx" />
+    <Content Include="service\projectsession\build_department_user_tree.ashx" />
+    <Content Include="service\projectsession\save_session_department.ashx" />
+    <Content Include="service\projectsession\set_task_to_user.ashx" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

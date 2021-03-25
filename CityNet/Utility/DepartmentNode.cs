@@ -31,22 +31,112 @@ namespace CityNet.Utility
                 scheck = "\"checked\":false,";
             }
 
-            return "{\"text\":'" + getValue("Name").ToString()
+            string retjson = "{\"text\":'" + getValue("Name").ToString()
                         + "',\"createtime\":\"" + getValue("CreateTime").ToString()
                         + "\",\"description\":\"" + getValue("Description").ToString()
                         + "\","+scheck+"\"projectName\":'" + getValue("Name").ToString()
                         + "',\"id\":\"" + this.Key.ToString() 
                         + "\",\"qtip\":" + getValue("ID").ToString() + ",\"leaf\": true,\"provider\":''}";
+            if (paramaters.Count >= 4)
+            {
+                bool checkstate = (bool)paramaters[2];
+                int sessionid = (int)paramaters[3];
+                if (checkstate)
+                {
+                    //查询state
+                    int departmentid = (int)getValue("ID");
+                    int state = getUserState(sessionid, departmentid);
+
+                    string check = "false";
+                    string indeterminate = "false";
+                    if (state == 0)
+                    {
+                        check = "false";
+                        indeterminate = "false";
+                    }
+                    else if (state == 1)
+                    {
+                        check = "true";
+                        indeterminate = "false";
+                    }
+                    string scheckbox = ",indeterminate:" + indeterminate + ",checked:" + check;
+                    retjson = "{text:'" + getValue("Name").ToString() + "',"
+                           + "id:'" + Key.ToString()
+                           + "',leaf:true,qtip:" + getValue("ID").ToString() + scheckbox + "}";
+                }
+            }
+            return retjson;
+
         }
+
+        private int getUserState(int sessionid, int userid)
+        {
+            //
+            string sql = "select count(ID) from [Session_User] where SessionID = @sid and UserID = @uid";
+            IList list = new ArrayList();
+            list.Add(new DictionaryEntry("@sid", sessionid));
+            list.Add(new DictionaryEntry("@uid", userid));
+            int Count = DBAccess.QueryStatistic(sql,list);
+            if (Count > 0)
+            {
+                return 1;
+            }
+            else
+            {
+                return 0;
+            }
+        }
+
+        private int getState(int sessionid,int departmentid)
+        {
+            string sql = "select State from SessionDepartmentState where SessionID = @sid and DepartmentID = @did";
+            IList list = new ArrayList();
+            list.Add(new DictionaryEntry("@sid", sessionid));
+            list.Add(new DictionaryEntry("@did", departmentid));
+            return DBAccess.QueryStatistic(sql, list);
+        }
+
         //获取节点的JSON,非叶子节点，childrenjson为叶子节点
         public override string nodejson(string childrenjson, IList paramaters)
         {
-            return "{\"text\":'" + getValue("Name").ToString()
-                        + "',\"createtime\":\"" + getValue("CreateTime").ToString()
-                        + "\",\"description\":\"" + getValue("Description").ToString() 
-                       + "\",\"projectName\":'" + getValue("Name").ToString() + "'," + "\"id\":"
-                       + Key.ToString() 
-                       + ",\"qtip\":1,\"leaf\": false,\"expanded\":'true',\"provider\":'',children:[" + childrenjson + "]}";
+            string retjson = "{\"text\":'" + getValue("Name").ToString()
+                           + "',\"createtime\":\"" + getValue("CreateTime").ToString()
+                           + "\",\"description\":\"" + getValue("Description").ToString()
+                           + "\",\"projectName\":'" + getValue("Name").ToString() + "'," + "\"id\":"
+                           + Key.ToString()
+                           + ",\"qtip\":1,\"leaf\": false,\"expanded\":true,\"provider\":'',children:[" + childrenjson + "]}";
+            if (paramaters.Count >= 4)
+            {
+                bool checkstate = (bool)paramaters[2];
+                int sessionid = (int)paramaters[3];
+                if (checkstate)
+                {
+                    //查询state
+                    int departmentid = (int)getValue("ID");
+                    int state = getState(sessionid, departmentid);
+
+                    string check = "false";
+                    string indeterminate = "false";
+                    if (state == 1)
+                    {
+                        check = "true";
+                        indeterminate = "true";
+                    }
+                    else if (state == 2)
+                    {
+                        check = "true";
+                        indeterminate = "false";
+                    }
+                    
+                    string scheckbox = ",indeterminate:" + indeterminate + ",checked:" + check;
+                    
+
+                    retjson = "{text:'" + getValue("Name").ToString()+"'," 
+                           + "id:"+ Key.ToString()
+                           + ",leaf: false,expanded:false"+scheckbox+"}";
+                }
+            }
+            return retjson;
         }
 
         public override void deletebyids(string ids)

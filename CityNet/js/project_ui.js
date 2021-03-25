@@ -6,13 +6,12 @@
 		url: '/service/user/get_userinfomation.ashx?params=' + params,
 		success: function (form, action) {
 			var userjson = Ext.decode(form.responseText);//当前用户信息
-
 			var treestore = new Ext.data.TreeStore(
             {
             	autoSync: false,
             	proxy: {
             		type: 'ajax',
-					url: '/service/tkyserver/build_project_section_tree_from_tkyserver.ashx?params=' + params,
+            		url: '/service/projectsession/build_session_tree_by_taskID.ashx?params=' + params,
 					extraParams: {
 			            taskid: -1
 			        },
@@ -42,17 +41,17 @@
 			    }
 			});
 			datastore.loadPage(1);
-
 			funpanel.addListener('resize', function (panel, width, height, oldWidth, oldHeight, eOpts) {
-
 			    var childpanel = Ext.getCmp('workedchild_id');
 			    childpanel.setHeight(height - 35);
-
 			    var panel1 = Ext.getCmp('workflow_gird_id');
 			    panel1.setWidth(width / 2);
-
 			});
-
+			var destorypanel = Ext.getCmp('workflow_gird_id');
+			if (!Ext.isEmpty(destorypanel))
+			{
+			    destorypanel = null;
+			}
 			var panel = Ext.create({
 				xtype: 'panel',
 				layout: 'border',
@@ -120,18 +119,24 @@
 						settaskfunction:function() {
 							var gridpanel = Ext.getCmp('workflow_gird_id');
 							var seletionnode = gridpanel.getSelection()[0];
+							var me = this;
 							Ext.Ajax.request({
-       					 	url: '/service/tkyserver/set_task_visible.ashx?params=' + params,
+							    url: '/service/projectsession/set_task_to_user.ashx?params=' + params,
         					params: {
 								taskid:seletionnode.data.taskid
        					 	},
         					success: function (form, action) {
-								var taskmsg =  Ext.getCmp('check_task_lock');
-								taskmsg.hide();
+        					    var taskmsg = me.mask;
+        					    if (!Ext.isEmpty(taskmsg)) {
+        					        taskmsg.hide();
+        					    }
 							},
         					failure: function (form, action) {
-								var taskmsg =  Ext.getCmp('check_task_lock');
-								taskmsg.hide();
+        					    
+        					    var taskmsg = me.mask;
+        					    if (!Ext.isEmpty(taskmsg)) {
+        					        taskmsg.hide();
+        					    }
 							}});
 						},
 						savefunction:function(node,checkstate,uncheck){
@@ -160,7 +165,7 @@
 							
 							me.submitcount = me.submitcount + 1;
     						Ext.Ajax.request({
-       					 	url: '/service/tkyserver/save_task_project.ashx?params=' + params,
+    						    url: '/service/projectsession/save_session_task.ashx?params=' + params,
         					params: {
 								checked: checked,
 								projectid: node.data.id,

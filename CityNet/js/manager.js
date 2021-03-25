@@ -30,6 +30,7 @@ function setupui(usermsg, managerParams)
             }
         }
     });
+    treestore.sort('priority','ASC');
 
     Ext.define('AccordionMenu.view.MainViewViewModel', {
         extend: 'Ext.app.ViewModel',
