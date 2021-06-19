@@ -45,8 +45,8 @@ namespace CityNet.service.document
                     int userID = LogUtility.GetUserID(username, password);
                     DateTime now = DateTime.Now;
 
-                    string sql = "insert into [TableScheme] (Name,Description,creatorID,Priority,createTime,valid,color,hasprojection,TaskID)" +
-                        " values (@sn,@des,@createid,@pri,@ct,@v,@color,@hasprj,@tid)";
+                    string sql = "insert into [TableScheme] (Name,Description,creatorID,Priority,createTime,valid,color,hasprojection)" +
+                        " values (@sn,@des,@createid,@pri,@ct,@v,@color,@hasprj)";
                     IList list = new ArrayList();
                     list.Add(new DictionaryEntry("@sn", schname));
                     list.Add(new DictionaryEntry("@des", description));
@@ -56,8 +56,26 @@ namespace CityNet.service.document
                     list.Add(new DictionaryEntry("@v", 0));//设定为无效
                     list.Add(new DictionaryEntry("@color", color));//设定颜色
                     list.Add(new DictionaryEntry("@hasprj", 0));//无投影信息
-                    list.Add(new DictionaryEntry("@tid", taskid));//无投影信息
+                   // //
                     DBAccess.NoQuery(sql, list);
+
+                    sql = "select Max(ID) from [TableScheme] where createTime = @ct and Name= @sn and creatorID=@createid";
+                    list.Clear();
+                    list.Add(new DictionaryEntry("@ct", now));
+                    list.Add(new DictionaryEntry("@sn", schname));
+                    list.Add(new DictionaryEntry("@createid", userID));
+                    int id = DBAccess.QueryStatistic(sql,list);
+                    if (id > 0 && taskid!=null)
+                    {
+                         list.Clear();
+                         sql = "insert into Task_TableScheme(TaskID,TableSchemeID) values(@tid,@tsid)";
+                         list.Add(new DictionaryEntry("@tid", taskid));
+                         list.Add(new DictionaryEntry("@tsid", id));
+                         DBAccess.NoQuery(sql, list);
+                    }
+
+                   
+
                     context.Response.Write("{success:1,msg:'插入方案成功'}");
 
                 }

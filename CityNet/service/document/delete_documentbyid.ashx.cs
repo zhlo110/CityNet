@@ -41,6 +41,11 @@ namespace CityNet.service.document
             sql = "delete from TempApproveDocument where DocumentID = @docid";
             DBAccess.NoQuery(sql, list);
 
+            sql = "delete from AlarmDocument where DocumentID = @docid";
+            DBAccess.NoQuery(sql, list);
+
+            
+
 
             sql = "select DocumentUrl,DocumentName from Document where ID = @docid";
              //DBAccess.Query(sql, list);

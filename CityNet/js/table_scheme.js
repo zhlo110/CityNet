@@ -256,7 +256,8 @@
                                                     Ext.Ajax.request({
                                                         url: '/service/document/delete_table_scheme.ashx?params=' + params,
                                                         params: {
-                                                            schid: seletionnode.data.schid
+                                                            schid: seletionnode.data.schid,
+                                                            taskid:-1
                                                         },
                                                         success: function (form, action) {
                                                             var errorjson = Ext.decode(form.responseText);

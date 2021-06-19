@@ -262,6 +262,7 @@
                                                 gridpanel.getPlugin('table_scheme_editor_plugin_id').cancelEdit();
                                                 var gridstore = gridpanel.getStore();
                                                 var seletionnode = gridpanel.getSelection()[0];
+                                                var projectcombox = Ext.getCmp('montor_project_combo_id');
                                                 if (seletionnode != null) {
                                                     //seletionnode.data.functionid;
                                                     Ext.MessageBox.confirm("提示", "是否要删除监测项'" + seletionnode.data.schname + "'？", function (btnId) {
@@ -269,12 +270,13 @@
                                                             Ext.Ajax.request({
                                                                 url: '/service/document/delete_table_scheme.ashx?params=' + params,
                                                                 params: {
-                                                                    schid: seletionnode.data.schid
+                                                                    schid: seletionnode.data.schid,
+                                                                    taskid:projectcombox.getValue()
                                                                 },
                                                                 success: function (form, action) {
                                                                     var errorjson = Ext.decode(form.responseText);
                                                                     Ext.MessageBox.alert("提示信息", errorjson.msg);
-                                                                    var projectcombox = Ext.getCmp('montor_project_combo_id');
+                                                                    
                                                                     schemenamestore.loadPage(1);
                                                                 },
                                                                 failure: function (form, action) {

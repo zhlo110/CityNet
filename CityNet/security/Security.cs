@@ -160,6 +160,8 @@ namespace CityNet.security
 
         public int stringtoint(string value,int defaultvalue)
         {
+            if (value == null)
+                value = "";
             int val = defaultvalue;
             if (!int.TryParse(value.Trim(), out val))
             {

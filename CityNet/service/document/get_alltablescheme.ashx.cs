@@ -22,7 +22,8 @@ namespace CityNet.service.document
             int start = int.Parse(context.Request["start"]);
             int limit = int.Parse(context.Request["limit"]);
             string taskid = context.Request["taskid"];
-            string condition = "and ts.TaskID is NULL";
+            string condition = "";//"and ts.TaskID is NULL";
+            //"and NOT EXISTS(select TableSchemeID from Task_TableScheme where TaskID = " + itaskid.ToString() + ")";
             if (taskid == null)
             {
                 taskid = "";
@@ -31,7 +32,12 @@ namespace CityNet.service.document
             int itaskid = -1;
             if (int.TryParse(taskid, out itaskid))
             {
-                condition = "and ts.TaskID ="+itaskid.ToString();
+                // condition = "and ts.TaskID ="+itaskid.ToString();
+                condition = "and ts.ID in (select TableSchemeID from Task_TableScheme where TaskID = " + itaskid.ToString() + ")";
+            }
+            else
+            {
+                condition = "and NOT EXISTS(select ID from Task_TableScheme where TableSchemeID = ts.ID)";
             }
 
             string sql = "select count(ID) from [TableScheme]";

@@ -16,7 +16,75 @@ namespace CityNet.service.task
     /// </summary>
     public class delete_tasks : Security
     {
+         protected override void fuctionimp(HttpContext context, System.Collections.IList parameters)
+         {
+             string taskid = context.Request["taskid"];
+             int itaskid = -1;
+             if (!int.TryParse(taskid, out itaskid))
+             {
+                 itaskid = -1;
+             }
+             IList list = new ArrayList();
+             list.Add(new DictionaryEntry("@taskid", itaskid));
+             string sql =
+             "DECLARE	@return_value int,@success char(50) " +
+             "EXEC @return_value = [dbo].[delete_task] " +
+             "@taskid = @taskid, " +
+             "@success = @success OUTPUT " +
+             "SELECT @success as Success, @return_value as ReturenValue";
+             int result = 0;
 
+             DataSet dataset = DBAccess.Query(sql, "delete_process", list);
+             if (dataset != null)
+             {
+                 int nCount = dataset.Tables.Count;
+                 if (nCount > 0)
+                 {
+                     DataTable dt = dataset.Tables[0];
+                     nCount = dt.Rows.Count;
+                     if (nCount > 0)
+                     {
+                         DataRow row = dt.Rows[0];
+                       //  DatabaseUtility.getStringValue(row, "Success");
+                         result = DatabaseUtility.getIntValue(row, "ReturenValue",-1);
+                     }
+                 }
+             }
+             if (result == 1)
+             {
+                 // 删除Document --
+                 sql = "select ID from [Document] where TaskID = @taskid";
+                 DataSet ds = DBAccess.Query(sql, "Document", list);
+                 if (ds != null)
+                 {
+                     if (ds.Tables.Count > 0)
+                     {
+                         DataTable dt = ds.Tables[0];
+                         int nCount = dt.Rows.Count;
+                         int i;
+                         for (i = 0; i < nCount; i++)
+                         {
+                             DataRow row = dt.Rows[i];
+                             int idocid = DatabaseUtility.getIntValue(row, "ID", -1);
+                             if (idocid > 0)
+                             {
+                                 deletedocumentbyid(idocid, context);
+                             }
+                         }
+                     }
+                 }
+                 returnInfo(context, "删除成功");
+             }
+             else
+             {
+                 returnInfo(context, "删除失败，原因是有已经有上传的数据");
+             }
+
+         }
+        
+
+
+        /*
         protected override void fuctionimp(HttpContext context, System.Collections.IList parameters)
         {
            // throw new NotImplementedException();
@@ -98,7 +166,7 @@ namespace CityNet.service.task
             sql = "delete from Task where ID = @taskid";
             DBAccess.NoQuery(sql, list);
             returnInfo(context, "删除任务成功");
-        }
+        }*/
 
         protected void deletedocumentbyid(int idocid,HttpContext context)
         {
@@ -118,6 +186,9 @@ namespace CityNet.service.task
             DBAccess.NoQuery(sql, list);
 
             sql = "delete from TempApproveDocument where DocumentID = @docid";
+            DBAccess.NoQuery(sql, list);
+
+            sql = "delete from AlarmDocument where DocumentID = @docid";
             DBAccess.NoQuery(sql, list);
 
 

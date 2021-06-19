@@ -25,20 +25,37 @@ namespace CityNet.service.document
         {
             //删除功能
             string schid = context.Request["schid"];
-            int ischid = -1;
-            if (!int.TryParse(schid, out ischid))
-            {
-                ischid = -1;
-            }
+            int ischid = this.stringtoint(schid, -1);
+            string taskid = context.Request["taskid"];
+            int itaskid = this.stringtoint(taskid, -1);
 
-            string sql = "DECLARE @success char(50) " +
-                         "EXEC dbo.delete_TableScheme @schemeid = @id, @success = @success OUTPUT " +
-                         "SELECT	@success as 'returnvalue'";
 
+            string sql = "";
             IList list = new ArrayList();
-            list.Add(new DictionaryEntry("@id", ischid));
-            string result = DBAccess.QueryString(sql, list);
-            context.Response.Write("{success:1,msg:'" + result + "'}");
+            sql = "delete from Task_TableScheme where TableSchemeID=@tsid and TaskID=@tid";
+            list.Add(new DictionaryEntry("@tsid", ischid));
+            list.Add(new DictionaryEntry("@tid", itaskid));
+            DBAccess.NoQuery(sql, list);
+
+            sql = "select count(ID) from Task_TableScheme where TableSchemeID=@tsid";
+            list.Clear();
+            list.Add(new DictionaryEntry("@tsid", ischid));
+            int count = DBAccess.QueryStatistic(sql, list);
+
+            if (count == 0 && ischid > 0)
+            {
+                sql = "DECLARE @success char(50) " +
+                             "EXEC dbo.delete_TableScheme @schemeid = @id, @success = @success OUTPUT " +
+                             "SELECT	@success as 'returnvalue'";
+                list.Clear();
+                list.Add(new DictionaryEntry("@id", ischid));
+                string result = DBAccess.QueryString(sql, list);
+                context.Response.Write("{success:1,msg:'" + result + "'}");
+            }
+            else
+            {
+                this.returnInfo(context,"该监测项还存在其他工点中");
+            }
         }
     }
 }
