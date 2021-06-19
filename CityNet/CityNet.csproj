@@ -117,6 +117,12 @@
     <Compile Include="Models\UserClass.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="security\Security.cs" />
+    <Compile Include="service\alarm\get_alarm_column.ashx.cs">
+      <DependentUpon>get_alarm_column.ashx</DependentUpon>
+    </Compile>
+    <Compile Include="service\alarm\get_alarm_error.ashx.cs">
+      <DependentUpon>get_alarm_error.ashx</DependentUpon>
+    </Compile>
     <Compile Include="service\alarm\refresh_alarm_byschid.ashx.cs">
       <DependentUpon>refresh_alarm_byschid.ashx</DependentUpon>
     </Compile>
@@ -128,6 +134,21 @@
     </Compile>
     <Compile Include="service\authority\validate_button.ashx.cs">
       <DependentUpon>validate_button.ashx</DependentUpon>
+    </Compile>
+    <Compile Include="service\basepoint\deletebasepoint.ashx.cs">
+      <DependentUpon>deletebasepoint.ashx</DependentUpon>
+    </Compile>
+    <Compile Include="service\basepoint\getbasepoint.ashx.cs">
+      <DependentUpon>getbasepoint.ashx</DependentUpon>
+    </Compile>
+    <Compile Include="service\basepoint\gettaskbyuseranddepartment.ashx.cs">
+      <DependentUpon>gettaskbyuseranddepartment.ashx</DependentUpon>
+    </Compile>
+    <Compile Include="service\basepoint\getusertask.ashx.cs">
+      <DependentUpon>getusertask.ashx</DependentUpon>
+    </Compile>
+    <Compile Include="service\basepoint\savebasepoint.ashx.cs">
+      <DependentUpon>savebasepoint.ashx</DependentUpon>
     </Compile>
     <Compile Include="service\controller\Document.ashx.cs">
       <DependentUpon>Document.ashx</DependentUpon>
@@ -354,6 +375,9 @@
     <Compile Include="service\projectsession\insert_updata_projectsession.ashx.cs">
       <DependentUpon>insert_updata_projectsession.ashx</DependentUpon>
     </Compile>
+    <Compile Include="service\projectsession\save_department_task.ashx.cs">
+      <DependentUpon>save_department_task.ashx</DependentUpon>
+    </Compile>
     <Compile Include="service\projectsession\save_session_department.ashx.cs">
       <DependentUpon>save_session_department.ashx</DependentUpon>
     </Compile>
@@ -363,11 +387,23 @@
     <Compile Include="service\projectsession\search_session.ashx.cs">
       <DependentUpon>search_session.ashx</DependentUpon>
     </Compile>
+    <Compile Include="service\projectsession\set_task_by_department.ashx.cs">
+      <DependentUpon>set_task_by_department.ashx</DependentUpon>
+    </Compile>
     <Compile Include="service\projectsession\set_task_to_user.ashx.cs">
       <DependentUpon>set_task_to_user.ashx</DependentUpon>
     </Compile>
     <Compile Include="service\projectsession\update_session_parent.ashx.cs">
       <DependentUpon>update_session_parent.ashx</DependentUpon>
+    </Compile>
+    <Compile Include="service\projectsite\getprojectsite_byuserid.ashx.cs">
+      <DependentUpon>getprojectsite_byuserid.ashx</DependentUpon>
+    </Compile>
+    <Compile Include="service\projectsite\get_available_projectsite.ashx.cs">
+      <DependentUpon>get_available_projectsite.ashx</DependentUpon>
+    </Compile>
+    <Compile Include="service\projectsite\update_new_projectsite.ashx.cs">
+      <DependentUpon>update_new_projectsite.ashx</DependentUpon>
     </Compile>
     <Compile Include="service\task\can_eidtable.ashx.cs">
       <DependentUpon>can_eidtable.ashx</DependentUpon>
@@ -431,6 +467,9 @@
     </Compile>
     <Compile Include="service\task\submit_task.ashx.cs">
       <DependentUpon>submit_task.ashx</DependentUpon>
+    </Compile>
+    <Compile Include="service\time\getsystemtime.ashx.cs">
+      <DependentUpon>getsystemtime.ashx</DependentUpon>
     </Compile>
     <Compile Include="service\tkyserver\build_project_section_tree_from_tkyserver.ashx.cs">
       <DependentUpon>build_project_section_tree_from_tkyserver.ashx</DependentUpon>
@@ -578,6 +617,7 @@
     <Content Include="Content\themes\base\minified\jquery.ui.slider.min.css" />
     <Content Include="Content\themes\base\minified\jquery.ui.tabs.min.css" />
     <Content Include="Content\themes\base\minified\jquery.ui.theme.min.css" />
+    <Content Include="createdbview\createfunction.txt" />
     <Content Include="createdbview\dbview.txt" />
     <Content Include="css\blink.css" />
     <Content Include="css\images\add.gif" />
@@ -5199,6 +5239,13 @@
     <Content Include="js\Resource\approve_guide_upload.js" />
     <Content Include="js\Resource\point_approve.js" />
     <Content Include="js\Resource\supervisor.js" />
+    <Content Include="js\subway\alarm_manager.js" />
+    <Content Include="js\subway\basepoint.js" />
+    <Content Include="js\subway\metro_project_manager.js" />
+    <Content Include="js\subway\monitor_alarm.js" />
+    <Content Include="js\subway\monitor_manager.js" />
+    <Content Include="js\subway\subwaymap.js" />
+    <Content Include="js\task_to_department.js" />
     <Content Include="js\Resource\task_ui.js" />
     <Content Include="js\Resource\uploadwizard.js" />
     <Content Include="js\Resource\upload_point.js" />
@@ -5450,6 +5497,19 @@
     <Content Include="service\projectsession\build_department_user_tree.ashx" />
     <Content Include="service\projectsession\save_session_department.ashx" />
     <Content Include="service\projectsession\set_task_to_user.ashx" />
+    <Content Include="service\time\getsystemtime.ashx" />
+    <Content Include="service\alarm\get_alarm_column.ashx" />
+    <Content Include="service\alarm\get_alarm_error.ashx" />
+    <Content Include="service\projectsession\save_department_task.ashx" />
+    <Content Include="service\projectsession\set_task_by_department.ashx" />
+    <Content Include="service\basepoint\getbasepoint.ashx" />
+    <Content Include="service\basepoint\getusertask.ashx" />
+    <Content Include="service\basepoint\savebasepoint.ashx" />
+    <Content Include="service\basepoint\deletebasepoint.ashx" />
+    <Content Include="service\projectsite\get_available_projectsite.ashx" />
+    <Content Include="service\projectsite\update_new_projectsite.ashx" />
+    <Content Include="service\projectsite\getprojectsite_byuserid.ashx" />
+    <Content Include="service\basepoint\gettaskbyuseranddepartment.ashx" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

@@ -163,6 +163,22 @@ go
 drop view Project_User_View;
 
 
+use CityNet;
+go
+create view Alarm_Point_View as
+(
+select AP.ID,AP.MeasurePointID,AP.AlarmSchemeID,AP.Eluminated,AP.Desciption as alarmdescription,
+MP.PointID,MP.x,MP.y,MP.z,MP.MeasureTime,MP.UpLoadUserID,MP.destoryed,MP.description,
+MP.TaskID,MP.sharedes,MP.L0,MP.h,MP.pointdescription,MP.SchemeID,MP.endpoint,MP.parallelbais,
+MP.gravitybais,MP.force,MP.convergence,MP.waterlevel,MP.sedimentation,MP.baselevel,MP.angle,MP.height,MP.height_level
+ from AlarmPoint AP left join MeasurePoint MP on AP.MeasurePointID=MP.ID
+)
+
+use CityNet;
+go
+drop view Alarm_Point_View;
+
+
 //表格去重复
 use CityNet;
 delete Task_Visible where [ID] not in(
@@ -180,6 +196,7 @@ EXECUTE sp_refreshview 'Document_User_View';
 EXECUTE sp_refreshview 'Point_User_View';
 EXECUTE sp_refreshview 'Point_Number_View';
 EXECUTE sp_refreshview 'Approve_User_View';
+EXECUTE sp_refreshview 'Alarm_Point_View';
 
 //部署清除数据库
 delete FROM [CityNet].[dbo].[Approve];

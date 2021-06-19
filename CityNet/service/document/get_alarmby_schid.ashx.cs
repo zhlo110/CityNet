@@ -55,24 +55,38 @@ namespace CityNet.service.document
                     DataTable dt = ds.Tables[0];
                     int nCount = dt.Rows.Count;
                     int i;
-                    int ivalid = 1;
                     for (i = 0; i < nCount; i++)
                     {
                         DataRow row = dt.Rows[i];
                         int ID = DatabaseUtility.getIntValue(row, "ID", -1);
                         string name = DatabaseUtility.getStringValue(row, "Name");
-                        string minlevel = DatabaseUtility.getStringValue(row, "minLevel");
-                        string maxlevel = DatabaseUtility.getStringValue(row, "maxLevel");
+                        string rule = DatabaseUtility.getStringValue(row, "Rules");
                         int schemeid = DatabaseUtility.getIntValue(row, "SchemeID", -1);
                         string color = DatabaseUtility.getStringValue(row, "color");
                         string unit = DatabaseUtility.getStringValue(row, "unit");
                         string description = DatabaseUtility.getStringValue(row, "Description");
+                        string errorstr = DatabaseUtility.getStringValue(row, "ErrorMsg");
+                        if (errorstr == null)
+                        {
+                            errorstr = "";
+                        }
+                        errorstr = errorstr.Trim();
+                        string valid = "0";
+                        if (errorstr.Length == 0)
+                        {
+                            valid = "1";
+                        }
+                        else
+                        {
+                            valid = "0";
+                        }
+                        
                         int alarmvalue = DatabaseUtility.getIntValue(row, "AlarmLevel", 0);
-
-
-                        children += "{\"alarmid\":" + ID.ToString() + ",\"alarmname\":'" + name + "',\"minlevel\":'" + minlevel + "',\"maxlevel\":'" + maxlevel
+                        children += "{\"alarmid\":" + ID.ToString() + ",\"alarmname\":'" + name + "',\"rule\":'" 
+                            + System.Web.HttpUtility.HtmlEncode(rule)
                             + "',\"color\":'" + color + "',\"description\":'" +
-                           description + "',\"unit\": '" + unit + "',alarmlevel:" + alarmvalue + "},";
+                           description + "',\"unit\": '" + unit + "',alarmlevel:" + alarmvalue + ",valid:" + valid 
+                           + ",qtip:''},";
                     }
 
                     if (children.Length > 0)

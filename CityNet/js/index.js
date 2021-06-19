@@ -81,11 +81,12 @@ function setupui(usermsg, managerUrl, params) {
     });
     Ext.application.params = params;
     
-    var mappanel = createmappanel(params);
+//    var mappanel = createmappanel(params);
 
     var viewport = Ext.create('Ext.container.Viewport',
     {
         layout: 'border',
+
         items: [
             {
                 xtype: 'panel',
@@ -147,13 +148,13 @@ function setupui(usermsg, managerUrl, params) {
                 xtype: 'panel',
                 id:'index_workplace_id',
                 layout: 'fit',
-                region: 'center',
-                items: [mappanel]
+                region: 'center'
+            //    items: [mappanel]
             }]
     });
     loadNavigation(params);
-    createmap(params);
-    addpointto_mainmap(params);
+   // createmap(params);
+   // addpointto_mainmap(params);
 }
 
 
@@ -270,6 +271,7 @@ function createmappanel(params) {
 function showmappanel(params) {
     var workplace = Ext.getCmp('index_workplace_id');
     workplace.removeAll();
+    workplace.clearListeners();
     var panel = createmappanel(params);
     workplace.add(panel);
     createmap(params);
@@ -281,6 +283,7 @@ function showdocumentpanel(params) {
 function showdocumentpanelimp(params,mode,url) {
     var workplace = Ext.getCmp('index_workplace_id');
     workplace.removeAll();
+    workplace.clearListeners();
     Ext.Ajax.request({
         url: '/service/user/get_userinfomation.ashx?params=' + params,
         success: function (form, action) {
@@ -340,6 +343,33 @@ function showdocumentpanelimp(params,mode,url) {
                             iconCls: 'button delete',
                             text: '删除任务',
                             handler: function () {
+                                var gridpanel = Ext.getCmp('task_gridview_id');
+                                var selectNode = gridpanel.selection;
+                                if (selectNode == null || selectNode.length <= 0) {
+                                    Ext.MessageBox.alert("提示信息", '请选择要删除的任务');
+                                }
+                                else {
+                                    Ext.MessageBox.confirm("提示", "确定要删除任务‘" + selectNode.data.taskname + "’吗？", function (btnId) {
+                                        if (btnId == "yes") {
+                                            Ext.Ajax.request({
+                                                url: '/service/task/delete_tasks.ashx?params=' + params,
+                                                params: {
+                                                    taskid: selectNode.data.taskid,
+                                                },
+                                                success: function (form, action) {
+                                                    var errorjson = Ext.decode(form.responseText);
+                                                    Ext.MessageBox.alert("提示信息", errorjson.msg);
+                                                    gridloadcurrentPage(datastore);
+
+                                                },
+                                                failure: function (form, action) {
+                                                    var errorjson = Ext.decode(form.responseText);
+                                                    Ext.MessageBox.alert("提示信息", errorjson.msg);
+                                                }
+                                            });
+                                        }
+                                    });
+                                }
                             }
                         },
 
@@ -414,6 +444,7 @@ function loadNavigation(params) {
     Ext.Ajax.request({
         url: '/service/user/build_function_tree.ashx?funtype=4&params=' + params,
         success: function (form, action) {
+            var kCount = 0;
             var json = Ext.decode(form.responseText);
             json.sort(function (a, b) {
                 if (a.priority > b.priority) return 1;
@@ -457,6 +488,10 @@ function loadNavigation(params) {
                 {
                     var subfun = children[j];
                     store.add({ src: subfun.description, caption: subfun.text, visible: 'block', url: subfun.url });
+                    if (kCount == 0) {
+                        eval(subfun.url)(params);
+                    }
+                    kCount++;
                 }
                 panel.add(
                     {

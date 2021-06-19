@@ -24,7 +24,7 @@ namespace CityNet.service.document
                 icolumns = 0;
             }
             //找推荐方案,条件 方案有效，列的个数与参数同
-            string sql = "select Name,ID from TableScheme_View where valid = 1 and RowNum = @rn";
+            string sql = "select Name,ID from TableScheme_View where valid = 1 and RowNum = @rn and TaskID is NULL";
             IList list = new ArrayList();
             list.Add(new DictionaryEntry("@rn", icolumns));
             DataSet ds = DBAccess.Query(sql, "TableScheme_View", list);

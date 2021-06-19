@@ -78,6 +78,31 @@ namespace CityNet.Utility
             return realname;
         }
 
+        //获取部门名称
+        public static string getDepartmentName(int departmentid)
+        {
+            string departmentname = "";
+            string sql = "select DepartmentName from [Department] where ID = @id";
+            IList list = new ArrayList();
+            list.Add(new DictionaryEntry("@id", departmentid));
+            DataSet dataset = DBAccess.Query(sql, "Department", list);
+            if (dataset != null)
+            {
+                int nCount = dataset.Tables.Count;
+                if (nCount > 0)
+                {
+                    DataTable dt = dataset.Tables[0];
+                    nCount = dt.Rows.Count;
+                    if (nCount > 0)
+                    {
+                        DataRow row = dt.Rows[0];
+                        departmentname = DatabaseUtility.getStringValue(row, "DepartmentName");
+                    }
+                }
+            }
+            return departmentname;
+        }
+
         public static int GetUserID(string username, string password)
         {
             String sql = "select [ID] from [User] where UserName = @un and PassWord = @pw";

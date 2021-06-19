@@ -30,6 +30,8 @@ namespace CityNet.service.document
             string username = parameters[0].ToString();
             string password = parameters[1].ToString();
             string color = context.Request["color"];
+            string taskid = context.Request["taskid"];
+
 
             if (schid != null && schname != null)
             {
@@ -43,8 +45,8 @@ namespace CityNet.service.document
                     int userID = LogUtility.GetUserID(username, password);
                     DateTime now = DateTime.Now;
 
-                    string sql = "insert into [TableScheme] (Name,Description,creatorID,Priority,createTime,valid,color,hasprojection)" +
-                        " values (@sn,@des,@createid,@pri,@ct,@v,@color,@hasprj)";
+                    string sql = "insert into [TableScheme] (Name,Description,creatorID,Priority,createTime,valid,color,hasprojection,TaskID)" +
+                        " values (@sn,@des,@createid,@pri,@ct,@v,@color,@hasprj,@tid)";
                     IList list = new ArrayList();
                     list.Add(new DictionaryEntry("@sn", schname));
                     list.Add(new DictionaryEntry("@des", description));
@@ -54,6 +56,7 @@ namespace CityNet.service.document
                     list.Add(new DictionaryEntry("@v", 0));//设定为无效
                     list.Add(new DictionaryEntry("@color", color));//设定颜色
                     list.Add(new DictionaryEntry("@hasprj", 0));//无投影信息
+                    list.Add(new DictionaryEntry("@tid", taskid));//无投影信息
                     DBAccess.NoQuery(sql, list);
                     context.Response.Write("{success:1,msg:'插入方案成功'}");
 

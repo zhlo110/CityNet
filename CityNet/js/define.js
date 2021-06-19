@@ -66,6 +66,30 @@ Ext.define('Task', {
     ]
 });
 
+
+Ext.define('ProjectSite', {
+    extend: 'Ext.data.Model',
+    fields: [
+        { name: 'taskchecked', xtype: 'checkcolumn' },
+        { name: 'taskid', type: 'int' },
+        { name: 'taskname', type: 'string' },
+        { name: 'sitetype', type: 'string' },
+        { name: 'sitestate', type: 'string' },
+        { name: 'range', type: 'string' },
+        { name: 'direction', type: 'string' },
+        { name: 'description', type: 'string' }
+
+    ]
+});
+
+Ext.define('TaskSimpe', {
+    extend: 'Ext.data.Model',
+    fields: [
+        { name: 'taskid', type: 'int' },
+        { name: 'taskname', type: 'string' }
+    ]
+});
+
 Ext.define('Document', {
     extend: 'Ext.data.Model',
     fields: [
@@ -88,6 +112,24 @@ Ext.define('Point', {
         { name: 'firsttime', type: 'string' },
         { name: 'longitude', type: 'string' },
         { name: 'latitude', type: 'string' }
+    ]
+});
+
+Ext.define('BasePoint', {
+    extend: 'Ext.data.Model',
+    fields: [
+        { name: 'id', type: 'int' },
+        { name: 'pointname', type: 'string' },
+        { name: 'sitename', type: 'string' },
+        { name: 'selectcheck', xtype: 'checkcolumn' },
+        { name: 'taskid', type: 'int' },
+        { name: 'x', type: 'string' },
+        { name: 'y', type: 'string' },
+        { name: 'z', type: 'string' },
+        { name: 'lon', type: 'string' },
+        { name: 'lat', type: 'string' },
+        { name: 'creator', type: 'string' },
+        { name: 'type', type: 'string' }
     ]
 });
 
@@ -152,6 +194,15 @@ Ext.define('Alarm', {
         { name: 'unit', type: 'string' },
         { name: 'alarmlevel', type: 'int' },
         { name: 'description', type: 'string' }
+    ]
+});
+
+Ext.define('AlarmColumn', {
+    extend: 'Ext.data.Model',
+    fields: [
+        { name: 'alarmid', type: 'int' },
+        { name: 'alarmname', type: 'string' },
+        { name: 'alarmcol', type: 'string' }
     ]
 });
 

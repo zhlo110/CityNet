@@ -11,6 +11,7 @@ function rectify_reform_list_imp(params,mode,url,buttontext)
 {
     var workplace = Ext.getCmp('index_workplace_id');
     workplace.removeAll();
+    workplace.clearListeners();
     Ext.Ajax.request({
         url: '/service/user/get_userinfomation.ashx?params=' + params,
         success: function (form, action) {
@@ -105,6 +106,7 @@ function rectify_reform_list_imp(params,mode,url,buttontext)
 function propose_reform_list(params) {
     var workplace = Ext.getCmp('index_workplace_id');
     workplace.removeAll();
+    workplace.clearListeners();
     Ext.Ajax.request({
         url: '/service/user/get_userinfomation.ashx?params=' + params,
         success: function (form, action) {

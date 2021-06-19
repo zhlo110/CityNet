@@ -37,7 +37,7 @@ namespace CityNet.Utility
                         + "\","+scheck+"\"projectName\":'" + getValue("Name").ToString()
                         + "',\"id\":\"" + this.Key.ToString() 
                         + "\",\"qtip\":" + getValue("ID").ToString() + ",\"leaf\": true,\"provider\":''}";
-            if (paramaters.Count >= 4)
+            if (paramaters.Count == 4)
             {
                 bool checkstate = (bool)paramaters[2];
                 int sessionid = (int)paramaters[3];
@@ -96,6 +96,15 @@ namespace CityNet.Utility
             return DBAccess.QueryStatistic(sql, list);
         }
 
+        private int getTaskState(int taskid, int departmentid)
+        {
+            string sql = "select State from Department_Task where TaskID = @tid and DepartmentID = @did";
+            IList list = new ArrayList();
+            list.Add(new DictionaryEntry("@tid", taskid));
+            list.Add(new DictionaryEntry("@did", departmentid));
+            return DBAccess.QueryStatistic(sql, list);
+        }
+
         //获取节点的JSON,非叶子节点，childrenjson为叶子节点
         public override string nodejson(string childrenjson, IList paramaters)
         {
@@ -105,7 +114,7 @@ namespace CityNet.Utility
                            + "\",\"projectName\":'" + getValue("Name").ToString() + "'," + "\"id\":"
                            + Key.ToString()
                            + ",\"qtip\":1,\"leaf\": false,\"expanded\":true,\"provider\":'',children:[" + childrenjson + "]}";
-            if (paramaters.Count >= 4)
+            if (paramaters.Count == 4)
             {
                 bool checkstate = (bool)paramaters[2];
                 int sessionid = (int)paramaters[3];
@@ -136,6 +145,38 @@ namespace CityNet.Utility
                            + ",leaf: false,expanded:false"+scheckbox+"}";
                 }
             }
+            else if (paramaters.Count == 5)
+            {
+                bool checkstate = (bool)paramaters[2];
+                int taskid = (int)paramaters[4];
+                if (checkstate)
+                {
+                    //查询state
+                    int departmentid = (int)getValue("ID");
+                    int state = getTaskState(taskid, departmentid);
+
+                    string check = "false";
+                    string indeterminate = "false";
+                    if (state == 1)
+                    {
+                        check = "true";
+                        indeterminate = "true";
+                    }
+                    else if (state == 2)
+                    {
+                        check = "true";
+                        indeterminate = "false";
+                    }
+
+                    string scheckbox = ",indeterminate:" + indeterminate + ",checked:" + check;
+
+
+                    retjson = "{text:'" + getValue("Name").ToString() + "',"
+                           + "id:" + Key.ToString()
+                           + ",leaf: false,expanded:false" + scheckbox + "}";
+                }
+            }
+
             return retjson;
         }
 

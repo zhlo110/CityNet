@@ -1,5 +1,6 @@
 ﻿using CityNet.Controllers;
 using CityNet.security;
+using CityNet.Utility;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -17,6 +18,9 @@ namespace CityNet.service.alarm
         protected override void fuctionimp(HttpContext context, IList parameters)
         {
             //更新所有的警报信息
+            string username = parameters[0].ToString();
+            string password = parameters[1].ToString();
+            int userid = LogUtility.GetUserID(username, password);
             string rel = context.Request["rel"].Trim();
             string measureid = context.Request["measureid"].Trim();
             string htmlvalue = context.Request["htmlvalue"].Trim();
@@ -28,9 +32,13 @@ namespace CityNet.service.alarm
             }
             if (rel.Length > 0)
             {
-                string sql = "update PointAlarm set "+rel+"_des=@html where MeasurePointID = @mid";
+                string sql = "update AlarmPoint set Desciption=@html,Eluminated=1,"+
+                    "EluminatedUser=@eu,EluminatedDate=@ed " +
+                    "where MeasurePointID = @mid";
                 IList list = new ArrayList();
                 list.Add(new DictionaryEntry("@html", htmlvalue));
+                list.Add(new DictionaryEntry("@eu", userid));
+                list.Add(new DictionaryEntry("@ed", DateTime.Now));
                 list.Add(new DictionaryEntry("@mid", imeasureid));
                 DBAccess.NoQuery(sql, list);
                 returnInfo(context,"消警成功");

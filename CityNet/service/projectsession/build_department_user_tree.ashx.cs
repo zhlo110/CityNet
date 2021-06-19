@@ -17,12 +17,41 @@ namespace CityNet.service.projectsession
         protected override void fuctionimp(HttpContext context, IList parameters)
         {
             //得到sessionID
-            string sessionid = context.Request["sessionid"];
+            string showleaves = context.Request["showleaves"];
+            string sessionid = context.Request["sessionid"]; //人员管理中的参数
+            string taskid = context.Request["taskid"]; //授权的参数
+
+            int itaskid = -1;
+            if (taskid != null && taskid != "")
+            {
+                taskid = taskid.Trim();
+                if (!int.TryParse(taskid, out itaskid))
+                {
+                    itaskid = -1;
+                }
+                if (itaskid == -1)
+                {
+                    context.Response.Write("[]");
+                    return;
+                }
+            }
+
+
             int isessionid = -1;
             if (!int.TryParse(sessionid, out isessionid))
             {
                 isessionid = -1;
             }
+            bool bshowleaves = true; //默认为true
+            if (showleaves != null && showleaves != "")
+            {
+                showleaves = showleaves.Trim();
+                if (showleaves.Equals("false"))
+                {
+                    bshowleaves = false;
+                }
+            }
+
 
             //配置json的输出样式
             IList jsonparamater = new ArrayList();
@@ -30,6 +59,10 @@ namespace CityNet.service.projectsession
             jsonparamater.Add(true);//已经用过
             jsonparamater.Add(true);//是否要从数据库中查询State
             jsonparamater.Add(isessionid);
+            if (itaskid > 0)//taskid起作用，isessionid将不起作用
+            {
+                jsonparamater.Add(itaskid);
+            }
 
             TreeNode node = new DepartmentNode();
             //判断节点是否为根节点
@@ -52,20 +85,26 @@ namespace CityNet.service.projectsession
             Hashtable roots = new Hashtable();
             node.TraceChildren(roots, 1);
             string json = "";
-
-            IList children = node.createChildrenLeaves();
+            IList children = null;
+            if (bshowleaves) //显示叶子节点
+            {
+                children = node.createChildrenLeaves();
+            }
 
             foreach (int key in roots.Keys)
             {
                 TreeNode pChild = roots[key] as TreeNode;
                 json += pChild.toJson(jsonparamater) + ",";
             }
-            int i;
-            int nCount = children.Count;
-            for (i = 0; i < nCount; i++ )
+            if (children != null)
             {
-                TreeNode pChild = children[i] as TreeNode;
-                json += pChild.leafjson(jsonparamater)+",";
+                int i;
+                int nCount = children.Count;
+                for (i = 0; i < nCount; i++)
+                {
+                    TreeNode pChild = children[i] as TreeNode;
+                    json += pChild.leafjson(jsonparamater) + ",";
+                }
             }
 
             if (json.Length > 0)

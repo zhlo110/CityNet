@@ -1,6 +1,7 @@
 ﻿function tablescheme_manager(params) {
     var funpanel = Ext.getCmp('function_area_id');
     funpanel.removeAll();
+   
     Ext.Ajax.request({
         url: '/service/user/get_userinfomation.ashx?params=' + params,
         success: function (form, action) {

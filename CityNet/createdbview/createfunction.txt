@@ -1,0 +1,53 @@
+﻿USE [CityNet]
+GO
+/****** Object:  UserDefinedFunction [dbo].[DateTimeDiff]    Script Date: 2021/4/14 10:55:59 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+-- =============================================
+-- Author:		<Author,,Name>
+-- Create date: <Create Date, ,>
+-- Description:	<Description, ,>
+-- =============================================
+ALTER FUNCTION [dbo].[DateTimeDiff](@type varchar(20), @begin DateTime, @end DateTime) 
+RETURNS int
+AS
+BEGIN
+	declare @second INT
+	declare @step int
+	-- Return the result of the function
+	SET @second =  DateDiff(ss,@begin,@end)
+	
+	if(@type='everysecond')
+	begin
+	SET @step = @second
+	end
+	else if(@type='everyminute')
+	begin
+	SET @step = @second/60
+	end
+	else if(@type='everyhour')
+	begin
+	SET @step = @second/3600
+	end
+	else if(@type='everyday')
+	begin
+	SET @step = @second/86400
+	end
+	else if(@type='everymonth')
+	begin
+	SET @step = @second/2592000
+	end
+	else if(@type='everyyear')
+	begin
+	SET @step = @second/31536000
+	end
+	SET @step = abs(@step)
+	IF (@step = 0)
+	Begin
+	SET @step = 1
+	end
+	RETURN @step
+
+END

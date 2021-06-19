@@ -28,12 +28,15 @@ namespace CityNet.service.user
             if(su1&&su2)
             {
                 string sql= "";
+                int istate = 0;
                 if (check.Trim().Equals("true"))
                 {
                     sql = "insert User_Department([UserID],[DepartmentID]) values(@uid,@did)";
+                    istate = 1;
                 }
                 else {
                     sql = "delete from User_Department where [UserID]=@uid and [DepartmentID] = @did";
+                    istate = 0;
                 }
                 //一个用户仅仅属于一个部门
                  
@@ -41,6 +44,17 @@ namespace CityNet.service.user
                 list.Add(new DictionaryEntry("@uid", iuserid));
                 list.Add(new DictionaryEntry("@did", idepartmentid));
                 DBAccess.NoQuery(sql, list);
+
+                //由于对用户的部门进行了更改，该工区下的任务对该用户的可视关系也应做相应的修改
+                //调用存储过程修改
+
+                sql = " EXEC dbo.change_department_user_task @userid = @uid, @departmentid = @did, @removes = @rmv";
+                list.Clear();
+                list.Add(new DictionaryEntry("@did", idepartmentid));
+                list.Add(new DictionaryEntry("@uid", iuserid));
+                list.Add(new DictionaryEntry("@rmv", istate)); // 0表示删除，1表示添加
+                DBAccess.NoQuery(sql, list);
+
                 returnInfo(context, "修改用户部门成功！");
             }
             else{

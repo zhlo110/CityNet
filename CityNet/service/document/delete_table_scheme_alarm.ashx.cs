@@ -37,10 +37,13 @@ namespace CityNet.service.document
             {
                 ialarmid = -1;
             }
-
-            string sql = "delete from AlarmScheme where [ID]= @id and SchemeID = @tsid";
+            //在AlarmPoint中删除该规则
+            string sql = "delete from AlarmPoint where [ID]= @id and Eluminated = 0 and AlarmSchemeID = @id";
             IList list = new ArrayList();
             list.Add(new DictionaryEntry("@id", ialarmid));
+            DBAccess.NoQuery(sql, list);
+
+            sql = "delete from AlarmScheme where [ID]= @id and SchemeID = @tsid";
             list.Add(new DictionaryEntry("@tsid", ischid));
             DBAccess.NoQuery(sql, list);
             context.Response.Write("{success:1,msg:'删除节点成功.'}");

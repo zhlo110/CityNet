@@ -150,9 +150,10 @@ namespace CityNet.service.document
 
                                     //schemeid，pointID, userid, h,L0
                                     //入库时查看是否有重名的点
-                                    sql = "select count(ID) from Point_User_View where PointName=@pname";
+                                    sql = "select count(ID) from Point where PointName=@pname and DepartmentID=@did";
                                     list.Clear();
                                     list.Add(new DictionaryEntry("@pname", pointname));
+                                    list.Add(new DictionaryEntry("@did", departmentid));
                                   //  list.Add(new DictionaryEntry("@uid", userid));
                                    // list.Add(new DictionaryEntry("@l0", L0));
                                   //  list.Add(new DictionaryEntry("@h", h));
@@ -169,18 +170,18 @@ namespace CityNet.service.document
                                           else //标识为复测选项
                                           {
                                             //找ID
-                                            sql = "select top 1 PointID from Point_User_View where PointName = @pname and UserID =@uid";
-                                            list.Clear();
-                                            list.Add(new DictionaryEntry("@pname", pointname));
-                                            list.Add(new DictionaryEntry("@uid", userid));
-                                            pointID = DBAccess.QueryStatistic(sql, list);
+                                              sql = "select top 1 ID from Point where PointName = @pname and DepartmentID=@did";
+                                              list.Clear();
+                                              list.Add(new DictionaryEntry("@pname", pointname));
+                                              list.Add(new DictionaryEntry("@did", departmentid));
+                                              pointID = DBAccess.QueryStatistic(sql, list);
                                       
-                                            sql = "update Point set Description = @des,DepartmentID=@did where ID=@pid";
-                                            list.Clear();
-                                            list.Add(new DictionaryEntry("@des", description));
-                                            list.Add(new DictionaryEntry("@did", departmentid));
-                                            list.Add(new DictionaryEntry("@pid", pointID));
-                                            DBAccess.NoQuery(sql, list);
+                                              sql = "update Point set Description = @des,DepartmentID=@did where ID=@pid";
+                                              list.Clear();
+                                              list.Add(new DictionaryEntry("@des", description));
+                                              list.Add(new DictionaryEntry("@did", departmentid));
+                                              list.Add(new DictionaryEntry("@pid", pointID));
+                                              DBAccess.NoQuery(sql, list);
                                         }
                                     }
                                     else //没有重名点
@@ -229,8 +230,8 @@ namespace CityNet.service.document
                                         string sign = "@" + key;
                                         TableColumn tcindex = (TableColumn)columns[key];
                                         string value = (string)parsedata[tcindex.No - 1];
-                 
-                                        if (tc.Type.Equals("datetime"))//datetime单独处理
+
+                                        if (tcindex.Type.Equals("datetime"))//datetime单独处理
                                         {
                                             string format = (string)dataformat[key];
                                             DateTime date;

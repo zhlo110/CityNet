@@ -118,6 +118,7 @@ namespace CityNet.service.document
             }
             return res;
         }
+        // calnodeleaf(ID, "x",childrennode, "x坐标", x);
         private void calnodeleaf(int measureid,string columns, IList children,string text, string qtip)
         {
             qtip =qtip.Trim();
@@ -129,21 +130,13 @@ namespace CityNet.service.document
                 }
                 else
                 {
-                    string des = getcolumndes(measureid, columns);
-
-                    string insql = "select " + columns + " from PointAlarm where MeasurePointID = @mid and (" + columns + "_des is null or " + columns + "_des='')";
-                    string sql = "select * from AlarmScheme where ID in(" + insql + ")";
+                    string sql = "select apv.ID,apv.MeasurePointID,apv.alarmdescription,apv.Eluminated, als.color from "+
+                                 "Alarm_Point_View apv left join  AlarmScheme als on apv.AlarmSchemeID = als.ID where MeasurePointID = @mid";
                     IList list = new ArrayList();
                     list.Add(new DictionaryEntry("@mid", measureid));
                     DataSet ds = DBAccess.Query(sql, "AlarmScheme", list);
                     int alarmed = 0;
-                    if (des.Length > 0)
-                    {
-                        alarmed = 2;
-                        text += "(已消警)";
-                    }
-
-                    string addstr = "{text:'" + text + ":" + qtip + "',qtip:'" + qtip + "',alarmed:"+alarmed.ToString()+",measureid:"+
+                    string addstr = "{text:'" + text + ":" + qtip + "',qtip:'" + qtip + "',alarmed:" + alarmed.ToString() + ",measureid:" +
                         measureid + ",rel:'" + columns + "',alarmcolor:'',alarminfo:'',leaf:true}";
 
                     if (ds != null)
@@ -155,17 +148,28 @@ namespace CityNet.service.document
                             if (nCount > 0)
                             {
                                 DataRow row = dt.Rows[0];
-                                alarmed = 1; //没有消警
-                                
-                                string color = DatabaseUtility.getStringValue(row, "color");
-                                addstr = "{text:'<font color="+color+">" + text + ": " + qtip + "</font>',qtip:'" +
-                                    qtip + "',alarmed:" + alarmed.ToString() + ",alarminfo:'',measureid:" + measureid
-                                    + ",rel:'" + columns + "',alarmcolor:'" + color + "',leaf:true}";
+                               
+                                int eluminated = DatabaseUtility.getIntValue(row, "Eluminated",-1);
+                                if (eluminated == 1)//已经消除
+                                {
+                                    alarmed = 2;
+                                    text += "(已消警)";
+                                    addstr = "{text:'" + text + ":" + qtip + "',qtip:'" + qtip + "',alarmed:" + alarmed.ToString() + ",measureid:" +
+                                         measureid + ",rel:'" + columns + "',alarmcolor:'',alarminfo:'',leaf:true}";
+                                }
+                                else
+                                {
+                                    string color = DatabaseUtility.getStringValue(row, "color");
+                                    alarmed = 1; //没有消警
+                                    addstr = "{text:'<font color=" + color + ">" + text + ": " + qtip + "</font>',qtip:'" +
+                                   qtip + "',alarmed:" + alarmed.ToString() + ",alarminfo:'',measureid:" + measureid
+                                   + ",rel:'" + columns + "',alarmcolor:'" + color + "',leaf:true}";
+                                }
                             }
                         }
                     }
-                    //查找报警信息
                     children.Add(addstr);
+
                 }
             }
         }

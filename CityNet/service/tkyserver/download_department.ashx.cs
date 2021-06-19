@@ -39,7 +39,7 @@ namespace CityNet.service.tkyserver
                     
                    
 
-                    string insertsql = "insert [Department]([ID],[DepartmentName],[ParentID],"+
+                    string insertsql = "insert into [Department]([ID],[DepartmentName],[ParentID],"+
                         "[Description],[CreateTime],[tkyShortName],"+
                         "[tkyGrade],[tkydepLevel],[tkyCategoryID],[tkyProjectInfoID],[tkyProjectSectionID],[tkyProjectAreaID]) values"+
                         "(@id,@name,@pid,@des,@ct,@shortname,@tg,@tl,@tc,@tpid,@tpsid,@tpaid)";

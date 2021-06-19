@@ -31,15 +31,14 @@ namespace CityNet.service.document
                 ischid = -1;
             }
 
-            string sql = "delete from TableScheme where [ID]= @id";
+            string sql = "DECLARE @success char(50) " +
+                         "EXEC dbo.delete_TableScheme @schemeid = @id, @success = @success OUTPUT " +
+                         "SELECT	@success as 'returnvalue'";
+
             IList list = new ArrayList();
             list.Add(new DictionaryEntry("@id", ischid));
-            DBAccess.NoQuery(sql, list);
-
-            sql = "delete from TableRowScheme where [TableSchemeID]= @id";
-            DBAccess.NoQuery(sql, list);
-
-            context.Response.Write("{success:1,msg:'删除节点成功.'}");
+            string result = DBAccess.QueryString(sql, list);
+            context.Response.Write("{success:1,msg:'" + result + "'}");
         }
     }
 }

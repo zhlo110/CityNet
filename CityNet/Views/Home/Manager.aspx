@@ -18,6 +18,7 @@
     <script src="/js/alarm_scheme.js" type="text/javascript"></script>
     <script src="/js/ProjectSession/projectsession.js" type="text/javascript"></script>
     <script src="/js/ProjectSession/sessionworker.js" type="text/javascript"></script>
+    <script src="/js/task_to_department.js" type="text/javascript"></script>
     <script>
         Ext.onReady(function () {
             var usermsg = '<%=ViewBag.Message%>'

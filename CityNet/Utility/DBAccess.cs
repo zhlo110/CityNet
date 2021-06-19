@@ -33,6 +33,8 @@ namespace CityNet.Controllers
             return res;
         }
 
+        
+
         public static void NoQuery(string sql, IList table)
         {
             SqlConnection OleConn = new SqlConnection(strConn);
@@ -45,7 +47,7 @@ namespace CityNet.Controllers
                 {
                     foreach (DictionaryEntry de in table)
                     {
-                        cmd.Parameters.AddWithValue(de.Key.ToString(), de.Value);
+                        cmd.Parameters.AddWithValue(de.Key.ToString(), de.Value == null ? DBNull.Value : de.Value);
                     }
                 }
                 cmd.ExecuteNonQuery();
@@ -84,6 +86,34 @@ namespace CityNet.Controllers
             {
                 return "";
             }
+        }
+
+        public static string QueryString(string sql, IList table)
+        {
+            string result = "";
+            SqlConnection OleConn = new SqlConnection(strConn);
+            OleConn.Open();
+            try
+            {
+
+                SqlCommand cmd = new SqlCommand(sql, OleConn);
+                if (table != null)
+                {
+                    foreach (DictionaryEntry de in table)
+                    {
+                        cmd.Parameters.AddWithValue(de.Key.ToString(), de.Value);
+                    }
+                }
+                object obj = cmd.ExecuteScalar();
+                result = obj.ToString();
+                OleConn.Close();
+            }
+            catch (Exception ex)
+            {
+                OleConn.Close();
+            }
+
+            return result;
         }
 
         public static int QueryStatistic(string sql, IList table)
@@ -141,6 +171,36 @@ namespace CityNet.Controllers
             }
             catch (Exception ex)
             {
+                OleConn.Close();
+                return null;
+            }
+        }
+        //插入时判断sql是否正确
+        public static DataSet QueryCheckSQL(string sql, string tableName, IList table,out string mes)
+        {
+            SqlConnection OleConn = new SqlConnection(strConn);
+            mes = "";
+            try
+            {
+                OleConn.Open();
+
+                SqlDataAdapter OleDaExcel = new SqlDataAdapter(sql, OleConn);
+                SqlCommand cmd = OleDaExcel.SelectCommand;
+                if (table != null)
+                {
+                    foreach (DictionaryEntry de in table)
+                    {
+                        cmd.Parameters.AddWithValue(de.Key.ToString(), de.Value);
+                    }
+                }
+                DataSet OleDsExcle = new DataSet();
+                OleDaExcel.Fill(OleDsExcle, tableName);
+                OleConn.Close();
+                return OleDsExcle;
+            }
+            catch (Exception ex)
+            {
+                mes = ex.Message;
                 OleConn.Close();
                 return null;
             }

@@ -58,11 +58,50 @@ namespace CityNet.Utility
             {
                 inconditon = inconditon.Substring(0, inconditon.Length - 1);
             }
+            if (inconditon.Length == 0)
+            {
+                inconditon = "-1";
+            }
             return inconditon;
-
         }
+
         //获取一系列数据所有的报警数据
         public void calculateAlarm(out int alarmid, out string colors)
+        {
+            //默认
+            alarmid = -1;
+            colors = "";
+            string strids = Point.getArrayIDStr(IDS, ",");
+            //查找PointAlarm 有没有该点
+            //生成pointid
+
+            string sql = "declare @temp table ([ID] [int],[AlarmSchemeID] [int],[PointID] [int],[Eluminated] [int],[Name] "
+                +" [nvarchar](50),color [char](20),[AlarmLevel] [int]) "
+                + " insert @temp select apv.ID,apv.AlarmSchemeID,"
+                + "apv.PointID,apv.Eluminated,als.Name,als.color,als.AlarmLevel  from Alarm_Point_View apv LEFT JOIN AlarmScheme als on "
+                + "apv.AlarmSchemeID = als.ID and apv.PointID in(" + strids + ") "
+                + "select top 1 * from  @temp where AlarmLevel = (select Max(AlarmLevel) from @temp) and  Eluminated <> 1";
+
+            DataSet ds = DBAccess.Query(sql, "AlarmPoint");
+            if (ds != null)
+            {
+                if (ds.Tables.Count > 0)
+                {
+                    DataTable dt = ds.Tables[0];
+                    int nCount = dt.Rows.Count;
+                    if (nCount > 0)
+                    {
+                        DataRow row = dt.Rows[0];
+                        colors = DatabaseUtility.getStringValue(row, "color").Trim();
+                        alarmid = DatabaseUtility.getIntValue(row, "ID", -1);
+                    }
+                }
+            }
+        }
+
+
+        //获取一系列数据所有的报警数据
+        public void calculateAlarm1(out int alarmid, out string colors)
         {
             //默认
             alarmid = -1;

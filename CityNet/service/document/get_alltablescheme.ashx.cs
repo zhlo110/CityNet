@@ -21,6 +21,18 @@ namespace CityNet.service.document
             string ret = getErrorMessage();
             int start = int.Parse(context.Request["start"]);
             int limit = int.Parse(context.Request["limit"]);
+            string taskid = context.Request["taskid"];
+            string condition = "and ts.TaskID is NULL";
+            if (taskid == null)
+            {
+                taskid = "";
+            }
+            taskid = taskid.Trim();
+            int itaskid = -1;
+            if (int.TryParse(taskid, out itaskid))
+            {
+                condition = "and ts.TaskID ="+itaskid.ToString();
+            }
 
             string sql = "select count(ID) from [TableScheme]";
             int totalCount = DBAccess.QueryStatistic(sql, null);
@@ -31,7 +43,7 @@ namespace CityNet.service.document
                 "select * from(" +
                 "select ROW_NUMBER() OVER(Order by ts.ID desc) as RowNum, " +
                 "ts.*,u.ID as uerID ,u.RealName from [TableScheme] ts ,[User] u " +
-                "where ts.creatorID = u.ID) as unions " +
+                "where ts.creatorID = u.ID " + condition + ") as unions " +
                 "where unions.RowNum between @start and @end";
 
             IList list = new ArrayList();

@@ -158,6 +158,25 @@ namespace CityNet.security
             }
         }
 
+        public int stringtoint(string value,int defaultvalue)
+        {
+            int val = defaultvalue;
+            if (!int.TryParse(value.Trim(), out val))
+            {
+                val = defaultvalue;
+            }
+            return val;
+        }
+
+        public double stringtodouble(string value, double defaultvalue)
+        {
+            double val = defaultvalue;
+            if (!double.TryParse(value.Trim(), out val))
+            {
+                val = defaultvalue;
+            }
+            return val;
+        }
 
         protected abstract void fuctionimp(HttpContext context, IList parameters);
         protected abstract string getErrorMessage();

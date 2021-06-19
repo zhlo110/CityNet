@@ -45,7 +45,7 @@ namespace CityNet.service.projectsession
 
             string info = "插入错误";
 
-            if (sisleaf.Equals("false"))
+            if (sisleaf.Equals("false"))//非叶子节点
             {
                 if (istate >= 0 && istate <= 2)
                 {
@@ -99,7 +99,7 @@ namespace CityNet.service.projectsession
                     returnErrorInfo(context, "checked参数传输错误");
                 }
             }
-            else
+            else//添加用户
             {
                 if (istate >= 0 && istate <= 2)
                 {
@@ -152,6 +152,15 @@ namespace CityNet.service.projectsession
                             if (sql != "")
                             {
                                 DBAccess.NoQuery(sql, list);
+                                //由于对用户的工区进行了更改，该工区下的任务对该用户的可视关系也应做相应的修改
+                                //调用存储过程修改
+                                sql = " EXEC dbo.change_projcetsession_user_task @userid = @uid, @projectid = @sid, @removes = @rmv";
+                                list.Clear();
+                                list.Add(new DictionaryEntry("@sid", isessionid));
+                                list.Add(new DictionaryEntry("@uid", iuserid));
+                                list.Add(new DictionaryEntry("@rmv", istate));
+                                DBAccess.NoQuery(sql, list);
+                               
                                 info = "插入成功";
                             }
                         }

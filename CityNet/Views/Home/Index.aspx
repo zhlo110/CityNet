@@ -9,6 +9,7 @@
     <script src="/js/Resource/uploadwizard.js" type="text/javascript"></script>
     <script src="/js/index.js" type="text/javascript"></script>
     <script src="/js/checkboxtree.js" type="text/javascript"></script>
+    <script src="/js/comboboxtree.js" type="text/javascript"></script>
     <script src="/js/backgroundprogress.js" type="text/javascript"></script>
     <script src="/leaflet/leaflet.js" type="text/javascript"></script>
     <script src="/leaflet/leaflet.ChineseTmsProviders.js" type="text/javascript"></script>
@@ -20,7 +21,16 @@
     <script src="/js/Resource/approvepanel.js" type="text/javascript"></script>
     <script src="/js/Resource/approve_guide_upload.js" type="text/javascript"></script>
     <script src="/js/Resource/supervisor.js" type="text/javascript"></script>
+    <script src="/js/subway/subwaymap.js" type="text/javascript"></script>
+    <script src="/js/subway/basepoint.js" type="text/javascript"></script>
+    <script src="/js/treeeditor.js" type="text/javascript"></script>
+    <script src="/js/subway/alarm_manager.js" type="text/javascript"></script>
+    <script src="/js/subway/monitor_alarm.js" type="text/javascript"></script>
+    <script src="/js/subway/monitor_manager.js" type="text/javascript"></script>
+    <script src="/js/subway/metro_project_manager.js" type="text/javascript"></script>
     <script>
+
+
         Ext.Loader.setConfig({
             enabled: true,
             paths: {

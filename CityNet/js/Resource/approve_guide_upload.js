@@ -1,6 +1,7 @@
 ﻿function showrulerpanel(params) {
     var workplace = Ext.getCmp('index_workplace_id');
     workplace.removeAll();
+    workplace.clearListeners();
     var datastore = Ext.create('Ext.data.Store', {
         model: 'Document',
         pageSize: 15,
@@ -113,6 +114,7 @@
 function approve_guide_upload(params) {
     var workplace = Ext.getCmp('index_workplace_id');
     workplace.removeAll();
+    workplace.clearListeners();
     var datastore = Ext.create('Ext.data.Store', {
         model: 'Document',
         pageSize: 15,

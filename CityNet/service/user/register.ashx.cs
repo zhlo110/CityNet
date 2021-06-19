@@ -99,6 +99,16 @@ namespace CityNet.service.user
             {
                 sql = "insert into User_Department(UserID,DepartmentID) values(@uid,@did)";
                 DBAccess.NoQuery(sql, list);
+
+                //注册了该部门，该部门下属的数据将会对该用户开放
+
+                sql = " EXEC dbo.change_department_user_task @userid = @uid, @departmentid = @did, @removes = @rmv";
+                list.Clear();
+                list.Add(new DictionaryEntry("@did", idid));
+                list.Add(new DictionaryEntry("@uid", UserID));
+                list.Add(new DictionaryEntry("@rmv", 1)); // 0表示删除，1表示添加
+                DBAccess.NoQuery(sql, list);
+
             }
 
             context.Response.Write("{success:1,msg:'注册成功，请返回首页登录。'}");

@@ -4,7 +4,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Web;
+using System.Web.Script.Serialization;
 
 namespace CityNet.Utility
 {
@@ -73,10 +75,503 @@ namespace CityNet.Utility
             sql = "delete from TempPointAlarm";
             DBAccess.NoQuery(sql, null);
         }
+        //schemeid 为表格方案ID 不是报警方案ID
+        //更新报警方案，当修改报警规则的时候将更改该方案
+        public static void updateAlarm(int schemeid)
+        {
+           
+            // 1 先删除AlarmPoint中的内容（与之相关的）
+
+            //查找条件 1、SchemeID=schemeid 2,TaskID必须是审批完成状态,3未消警状态
+            string insql = "select ID from Alarm_Point_View where SchemeID =@schid and TaskID " +
+                "in (select ID from Task_View where priority=4) and Eluminated=0";
+
+            string sql = "delete from AlarmPoint where ID in (" + insql + ")";
+            IList list = new ArrayList();
+            list.Add(new DictionaryEntry("@schid", schemeid));
+            DBAccess.NoQuery(sql, list);
+
+            //2、重建该方案的报警
+            //2.1 表里表格方案中的所有报警方案
+            sql = "select ID,unit,Rules,Type from AlarmScheme where SchemeID = @schid";
+            DataSet ds = DBAccess.Query(sql, "AlarmScheme", list);
+            if (ds != null)
+            {
+                if (ds.Tables.Count > 0)
+                {
+                    DataTable dt = ds.Tables[0];
+                    int nCount = dt.Rows.Count;
+                    int i;
+                    for (i = 0; i < nCount; i++)
+                    {
+                        /*
+                         { "type": "Value", "name": "值变化" },
+                         { "type": "Single", "name": "单次变化" },
+                         { "type": "Speed", "name": "速率变化" },
+                         { "type": "Accumulate", "name": "累计变化" }
+                         */
+                        /*
+                         { "feq": "everyyear", "name": "每年" },
+                         { "feq": "everymonth", "name": "每月" },
+                         { "feq": "everyday", "name": "每日" },
+                         { "feq": "everyhour", "name": "每小时" },
+                         { "feq": "everyminute", "name": "每分钟" },
+                         { "feq": "everysecond", "name": "每秒钟" }
+                         
+                         */
+                        DataRow row = dt.Rows[i];
+                        int AlarmID = DatabaseUtility.getIntValue(row, "ID", -1);
+                        string unit = DatabaseUtility.getStringValue(row, "unit");
+                        string rule = DatabaseUtility.getStringValue(row, "Rules");
+                        string type = DatabaseUtility.getStringValue(row, "Type");//1 Value 2 Speed 3 
+
+                        setupalarmbyrule(schemeid, AlarmID, unit, rule, type);
+
+                    }
+                }
+            }
+        }
+
+        protected static void setupalarmbyrule(int schemeid,int alarmID,string unit,string rule, string type)
+        {
+            string realtype = "";
+            char[] split = new char[] { '_' };
+            string[] vec = type.Split(split);
+            realtype = vec[0].Trim();
+
+
+            switch (realtype)
+            {
+                case "Value"://值变化
+                    ValueChange(schemeid,alarmID, unit, rule);
+                    break;
+                case "Single"://单次变化
+                    SingleChange(schemeid, alarmID, unit, rule);
+                    break;
+                case "Speed"://速率变化
+                    SpeedChange(schemeid, alarmID, unit, rule);
+                    break;
+                case "Accumulate"://累计变化
+                    AccumulateChange(schemeid, alarmID, unit, rule);
+                    break;
+            }
+        }
+        public static double getUnitFactor(string unit)
+        {
+            double factor = 1.0; //默认因子为1
+            unit = unit.Trim();
+            //长度单位，数据库存储以米为单位
+            switch (unit)
+            {
+                case "公里":
+                    factor = 0.001;
+                    break;
+                case "千米":
+                    factor = 0.001;
+                    break;
+                case "米":
+                    factor = 1.0;
+                    break;
+                case "分米":
+                    factor = 10.0;
+                    break;
+                case "厘米":
+                    factor = 100.0;
+                    break;
+                case "毫米":
+                    factor = 1000.0;
+                    break;
+
+            }
+            //其他单位先不管
+
+            return factor;
+        }
+        protected static void insertAlarmPoint(int alarmid,int mesurepntid)
+        {
+            if (alarmid > 0 && mesurepntid > 0) //判断有效性
+            {
+                //已经消除的警报，不能再次插入
+                string sql = "select max(Eluminated) from AlarmPoint where  MeasurePointID = @mid";
+                IList list = new ArrayList();
+                list.Add(new DictionaryEntry("@mid", mesurepntid));
+                int Eluminated = DBAccess.QueryStatistic(sql, list);
+                if (Eluminated == 1) return;//已经消警了
+
+                //没有消警
+                sql = "select count(ID) from AlarmPoint where MeasurePointID = @mid and AlarmSchemeID= @aid";
+                list.Clear();
+                list.Add(new DictionaryEntry("@mid", mesurepntid));
+                list.Add(new DictionaryEntry("@aid", alarmid));
+                int ncount = DBAccess.QueryStatistic(sql, list);
+                if (ncount <= 0) //之前没有报警，现在报警了
+                {
+                    //插入最高等级报警（如黄色报警和红色报警，直插入红色报警，黄色报警舍弃）
+                    sql = "declare @cur_shemelevel int " + //待插入的alarmsheme
+                          "declare @insert_shemelevel int " + //已经插入的alarmsheme
+                          "select @cur_shemelevel=Max(AlarmLevel) from AlarmScheme where ID = @aid " +
+                          "select @insert_shemelevel = MAX(AlarmLevel) from AlarmPoint AP " +
+                          "left join AlarmScheme ALS on AP.AlarmSchemeID = ALS.ID where MeasurePointID=@mid " +
+                          "IF(@insert_shemelevel is null) " + //没有数据
+                          "begin insert into AlarmPoint(MeasurePointID,AlarmSchemeID,Eluminated,Desciption) values(@mid,@aid,0,'') end " +
+                          "else if (@cur_shemelevel>@insert_shemelevel) " + //有数据,且待插入的数据比数据库内的数据级别高
+                          "begin update AlarmPoint set AlarmSchemeID=@aid where MeasurePointID=@mid end";
+                  //  sql = "insert into AlarmPoint(MeasurePointID,AlarmSchemeID,Eluminated,Desciption) values(@mid,@aid,0,'')";
+                    DBAccess.NoQuery(sql, list);
+                }
+            }
+        }
+
+        //值变化
+        protected static void ValueChange(int schemeid,int alarmID, string unit, string rule)
+        {
+            string sql = "select ID from MeasurePoint where SchemeID =@schid and TaskID " +
+              "in (select ID from Task_View where priority=4)";
+            //得到单位
+            double factor = getUnitFactor(unit);
+            //解析rule,从rule里面寻找条件
+            string conditionsql = factor.ToString("f4");
+            conditionsql = conditionsql + "*";
+            
+            //解析json对象
+            JavaScriptSerializer serializer = new JavaScriptSerializer();
+            Dictionary<string, object> json = (Dictionary<string, object>)serializer.DeserializeObject(rule);
+            rule = json["rule"].ToString();
+            rule = rule.Replace("@", conditionsql);
+            sql += " and " + rule;
+            IList list = new ArrayList();
+            list.Add(new DictionaryEntry("@schid", schemeid));
+          
+            //判断sql语句是否有错
+            string msg = "";
+            DataSet ds = DBAccess.QueryCheckSQL(sql, "MeasurePoint",list, out msg);
+            msg = msg.Trim();
+            if (msg.Length == 0) //没有语法错误
+            {
+                if (ds != null)
+                {
+                    if (ds.Tables.Count > 0)
+                    {
+                        DataTable dt = ds.Tables[0];
+                        int nCount = dt.Rows.Count;
+                        int i;
+                        for (i = 0; i < nCount; i++)
+                        {
+                            DataRow row = dt.Rows[i];
+                            int measureid = DatabaseUtility.getIntValue(row, "ID", -1);
+                            insertAlarmPoint(alarmID, measureid); //插入报警表
+                        }
+                    }
+                }
+            }
+            else//有语法错误
+            {
+                sql = "update AlarmScheme set ErrorMsg = ErrorMsg+@msg where ID=@alarmid";
+                list.Clear();
+                msg += "<br/>";
+                list.Add(new DictionaryEntry("@msg", msg));
+                list.Add(new DictionaryEntry("@alarmid", alarmID));
+                DBAccess.NoQuery(sql, list);
+
+            }
+        }
+        //单次变化
+        protected static void SingleChange(int schemeid, int alarmID, string unit, string rule)
+        {
+          //  string sql = "select * from MeasurePoint where SchemeID =@schid and TaskID " +
+           //   "in (select ID from Task_View where priority=4)";
+            //得到单位
+            double factor = getUnitFactor(unit);
+
+            //解析json对象
+            JavaScriptSerializer serializer = new JavaScriptSerializer();
+            Dictionary<string, object> json = (Dictionary<string, object>)serializer.DeserializeObject(rule);
+            string rules = json["rule"].ToString();
+
+            //解析rule,从rule里面寻找条件
+            string conditionsql = factor.ToString("f4");
+            conditionsql = conditionsql + "*T.diff_";
+            string rulecondition = rules.Replace("@", conditionsql); //添加条件
+
+
+            //提取参数
+            string queryvalue = "a.ID,";
+            string tablevalue = "ID,";
+            HashSet<string> paramSet = new HashSet<string>();
+            foreach (Match match in Regex.Matches(rules,@"(?<!\w)@\w+"))
+            {
+                string value = match.Value;
+                value = value.Substring(1, value.Length - 1);
+                if (!paramSet.Contains(value))
+                {
+                    queryvalue += "abs(a." + value + "-b." + value + ") as diff_" + value + ",";
+                    tablevalue += value + ",";
+                    paramSet.Add(value);
+                }
+            }
+            queryvalue = queryvalue.Substring(0, queryvalue.Length - 1);
+            queryvalue += " ";
+            tablevalue = tablevalue.Substring(0, tablevalue.Length - 1);
+            tablevalue += " ";
+            /*
+            string sql = "select T.* from (select " + queryvalue + " from " +
+                         "(select ROW_NUMBER() OVER(Order by MeasureTime asc) as RowNum ," + tablevalue + " from MeasurePoint " +
+                         "where SchemeID = @schid and TaskID in (select ID from Task_View where priority=4)) a," +
+                         "(select ROW_NUMBER() OVER(Order by MeasureTime asc) as RowNum ," + tablevalue + " from MeasurePoint " +
+                         "where SchemeID = @schid and TaskID in (select ID from Task_View where priority=4)) b " +
+                         "where a.RowNum = b.RowNum+1) T where " + rulecondition; */
+
+            string sql = 
+            "select * from("+
+            "select " +  queryvalue +" from" +
+            "(select ROW_NUMBER() OVER(partition by PointID Order by  MeasureTime asc) as RowNum,MeasureTime,PointID," + tablevalue +
+            " from MeasurePoint " + 
+            "where SchemeID = @schid and TaskID in (select ID from Task_View where priority=4)) a,"+
+            "(select ROW_NUMBER() OVER(partition by PointID Order by  MeasureTime asc) as RowNum,MeasureTime,PointID," + tablevalue +
+            " from MeasurePoint " + 
+            "where SchemeID =@schid and TaskID in (select ID from Task_View where priority=4)) b where "+
+            "a.RowNum = b.RowNum+1  and a.PointID = b.PointID) T where "+ rulecondition;
+
+
+
+            IList list = new ArrayList();
+            list.Add(new DictionaryEntry("@schid", schemeid));
+
+            //判断sql语句是否有错
+            string msg = "";
+            DataSet ds = DBAccess.QueryCheckSQL(sql, "MeasurePoint", list, out msg);
+            msg = msg.Trim();
+            if (msg.Length == 0) //没有语法错误
+            {
+                if (ds != null)
+                {
+                    if (ds.Tables.Count > 0)
+                    {
+                        DataTable dt = ds.Tables[0];
+                        int nCount = dt.Rows.Count;
+                        int i;
+                        for (i = 0; i < nCount; i++) //从1开始
+                        {
+                            DataRow row = dt.Rows[i];//本行
+                            int measureid = DatabaseUtility.getIntValue(row, "ID", -1);
+                            insertAlarmPoint(alarmID, measureid); //插入报警表
+                        }
+                    }
+                }
+            }
+            else//有语法错误
+            {
+                sql = "update AlarmScheme set ErrorMsg = ErrorMsg+@msg where ID=@alarmid";
+                list.Clear();
+                msg += "<br/>";
+                list.Add(new DictionaryEntry("@msg", msg));
+                list.Add(new DictionaryEntry("@alarmid", alarmID));
+                DBAccess.NoQuery(sql, list);
+
+            }
+
+        }
+
+        //根据速度算
+        protected static void SpeedChange(int schemeid, int alarmID, string unit, string rule)
+        {
+            //  string sql = "select * from MeasurePoint where SchemeID =@schid and TaskID " +
+            //   "in (select ID from Task_View where priority=4)";
+            //得到单位
+            double factor = getUnitFactor(unit);
+
+            //解析json对象
+            JavaScriptSerializer serializer = new JavaScriptSerializer();
+            Dictionary<string, object> json = (Dictionary<string, object>)serializer.DeserializeObject(rule);
+            string rules = json["rule"].ToString();
+            string frequency = json["frequency"].ToString().Trim(); //频率
+
+            //解析rule,从rule里面寻找条件
+            string conditionsql = factor.ToString("f4");
+            conditionsql = conditionsql + "*T.diff_";
+            string rulecondition = rules.Replace("@", conditionsql); //添加条件
+            //{type:'Single',frequency:'everyday',rule:'@x>=1 and @y >= 1'}
+
+            //提取参数
+            string queryvalue = "a.ID,";
+            string tablevalue = "ID,";
+            HashSet<string> paramSet = new HashSet<string>();
+            foreach (Match match in Regex.Matches(rules, @"(?<!\w)@\w+"))
+            {
+                string value = match.Value;
+                value = value.Substring(1, value.Length - 1);
+                if (!paramSet.Contains(value))
+                {
+                    queryvalue += "abs(a." + value + "-b." + value + ")/dbo.DateTimeDiff('" +
+                        frequency + "',b.MeasureTime,a.MeasureTime) as diff_" + value + ",";
+                    tablevalue += value + ",";
+                    paramSet.Add(value);
+                }
+            }
+            queryvalue = queryvalue.Substring(0, queryvalue.Length - 1);
+            queryvalue += " ";
+            tablevalue = tablevalue.Substring(0, tablevalue.Length - 1);
+            tablevalue += " ";
+            /*
+            string sql = "select T.* from (select " + queryvalue + " from " +
+                         "(select ROW_NUMBER() OVER(Order by MeasureTime asc) as RowNum,MeasureTime," + tablevalue + " from MeasurePoint " +
+                         "where SchemeID = @schid and TaskID in (select ID from Task_View where priority=4)) a," +
+                         "(select ROW_NUMBER() OVER(Order by MeasureTime asc) as RowNum,MeasureTime," + tablevalue + " from MeasurePoint " +
+                         "where SchemeID = @schid and TaskID in (select ID from Task_View where priority=4)) b " +
+                         "where a.RowNum = b.RowNum+1) T where " + rulecondition;*/
+
+
+            string sql =
+            "select * from(" +
+            "select " + queryvalue + " from" +
+            "(select ROW_NUMBER() OVER(partition by PointID Order by  MeasureTime asc) as RowNum,MeasureTime,PointID," + tablevalue +
+            " from MeasurePoint " +
+            "where SchemeID = @schid and TaskID in (select ID from Task_View where priority=4)) a," +
+            "(select ROW_NUMBER() OVER(partition by PointID Order by  MeasureTime asc) as RowNum,MeasureTime,PointID," + tablevalue +
+            " from MeasurePoint " +
+            "where SchemeID =@schid and TaskID in (select ID from Task_View where priority=4)) b where " +
+            "a.RowNum = b.RowNum+1  and a.PointID = b.PointID) T where " + rulecondition;
+
+
+
+            IList list = new ArrayList();
+            list.Add(new DictionaryEntry("@schid", schemeid));
+
+            //判断sql语句是否有错
+            string msg = "";
+            DataSet ds = DBAccess.QueryCheckSQL(sql, "MeasurePoint", list, out msg);
+            msg = msg.Trim();
+            if (msg.Length == 0) //没有语法错误
+            {
+                if (ds != null)
+                {
+                    if (ds.Tables.Count > 0)
+                    {
+                        DataTable dt = ds.Tables[0];
+                        int nCount = dt.Rows.Count;
+                        int i;
+                        for (i = 0; i < nCount; i++) //从1开始
+                        {
+                            DataRow row = dt.Rows[i];//本行
+                            int measureid = DatabaseUtility.getIntValue(row, "ID", -1);
+                            insertAlarmPoint(alarmID, measureid); //插入报警表
+                        }
+                    }
+                }
+            }
+            else//有语法错误
+            {
+                sql = "update AlarmScheme set ErrorMsg = ErrorMsg+@msg where ID=@alarmid";
+                list.Clear();
+                msg += "<br/>";
+                list.Add(new DictionaryEntry("@msg", msg));
+                list.Add(new DictionaryEntry("@alarmid", alarmID));
+                DBAccess.NoQuery(sql, list);
+
+            }
+
+        }
+
+        //累计变化
+        protected static void AccumulateChange(int schemeid, int alarmID, string unit, string rule)
+        {
+            //  string sql = "select * from MeasurePoint where SchemeID =@schid and TaskID " +
+            //   "in (select ID from Task_View where priority=4)";
+            //得到单位
+            double factor = getUnitFactor(unit);
+
+            //解析json对象
+            JavaScriptSerializer serializer = new JavaScriptSerializer();
+            Dictionary<string, object> json = (Dictionary<string, object>)serializer.DeserializeObject(rule);
+            string rules = json["rule"].ToString();
+            string frequency = json["frequency"].ToString().Trim(); //频率
+
+            //解析rule,从rule里面寻找条件
+            string conditionsql = factor.ToString("f4");
+            conditionsql = conditionsql + "*T.diff_";
+            string rulecondition = rules.Replace("@", conditionsql); //添加条件
+            //{type:'Single',frequency:'everyday',rule:'@x>=1 and @y >= 1'}
+
+            //提取参数
+            string queryvalue = "baseA.ID,";
+            string tablevalue = "ID,";
+            HashSet<string> paramSet = new HashSet<string>();
+            foreach (Match match in Regex.Matches(rules, @"(?<!\w)@\w+"))
+            {
+                string value = match.Value;
+                value = value.Substring(1, value.Length - 1);
+                if (!paramSet.Contains(value))
+                {
+                    queryvalue += "abs(a1." + value + "-baseA." + value + ") as diff_" + value + ",";
+                    tablevalue += value + ",";
+                    paramSet.Add(value);
+                }
+            }
+            queryvalue = queryvalue.Substring(0, queryvalue.Length - 1);
+            queryvalue += " ";
+            tablevalue = tablevalue.Substring(0, tablevalue.Length - 1);
+            tablevalue += " ";
+
+            string sql =
+                "select * from" +
+                "(select baseA.MeasureTime,baseA.PointID," +
+                queryvalue +
+                "from " +
+                "(select MeasureTime,PointID," +
+                tablevalue +
+                "from MeasurePoint where SchemeID =@schid and TaskID in (select ID from Task_View where priority=4)) " +
+                "baseA left join " +
+                "(select * from(" +
+                "select PointID,MeasureTime," +
+                "ROW_NUMBER() over (partition by PointID order by MeasureTime) as classNo," +
+                tablevalue +
+                " from MeasurePoint where SchemeID = @schid " +
+                "and TaskID in (select ID from Task_View where priority=4)) a where a.classNo=1) a1 " +
+                "on baseA.PointID = a1.PointID) T where " + rulecondition;
+
+            IList list = new ArrayList();
+            list.Add(new DictionaryEntry("@schid", schemeid));
+
+            //判断sql语句是否有错
+            string msg = "";
+            DataSet ds = DBAccess.QueryCheckSQL(sql, "MeasurePoint", list, out msg);
+            msg = msg.Trim();
+            if (msg.Length == 0) //没有语法错误
+            {
+                if (ds != null)
+                {
+                    if (ds.Tables.Count > 0)
+                    {
+                        DataTable dt = ds.Tables[0];
+                        int nCount = dt.Rows.Count;
+                        int i;
+                        for (i = 0; i < nCount; i++) //从1开始
+                        {
+                            DataRow row = dt.Rows[i];//本行
+                            int measureid = DatabaseUtility.getIntValue(row, "ID", -1);
+                            insertAlarmPoint(alarmID, measureid); //插入报警表
+                        }
+                    }
+                }
+            }
+            else//有语法错误
+            {
+                sql = "update AlarmScheme set ErrorMsg = ErrorMsg+@msg where ID=@alarmid";
+                list.Clear();
+                msg += "<br/>";
+                list.Add(new DictionaryEntry("@msg", msg));
+                list.Add(new DictionaryEntry("@alarmid", alarmID));
+                DBAccess.NoQuery(sql, list);
+
+            }
+
+        }
+        
+
 
         //更新最新报警状态，前提条件是该任务已经审批完成
         // shemeid为方案名称
-        public static void updateAlarm(int schemeid)
+        public static void updateAlarm_bak(int schemeid)
         {
             UpdateAlarm.savealarm();
             //1、在MeasurePoint表中找SchemeID的记录（太多）
