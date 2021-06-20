@@ -579,6 +579,7 @@
                                             }
                                         }
                                     ]
+
                                 }],
                                 bbar: Ext.create('Ext.PagingToolbar', {
                                     store: rowdatastore,
