@@ -22,10 +22,20 @@ namespace CityNet.service.basepoint
             string password = parameters[1].ToString();
             IList list = new ArrayList();
             int userid = LogUtility.GetUserID(username, password);
+
+            string expecttaskid = context.Request["excepttaskid"];
+            int iexpectid = this.stringtoint(expecttaskid, -1);
+            string condition = "";
+            if (iexpectid > 0)
+            {
+                condition = " and TaskID <> " + expecttaskid.ToString();
+            }
+            
+
             string sql = "select * from " +
                         "(select Base.*,ss.Priority from( " +
                         "select ID,TaskName,StateID from Task where ID in( " +
-                        "select TaskID from Task_Visible where UserID=@uid) ) Base left join SubmitState ss on Base.StateID = ss.ID) " +
+                        "select TaskID from Task_Visible where UserID=@uid" + condition + ") ) Base left join SubmitState ss on Base.StateID = ss.ID) " +
                         "unions where unions.Priority = 4";
             list.Add(new DictionaryEntry("@uid", userid));
             string children = "";

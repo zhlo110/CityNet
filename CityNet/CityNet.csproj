@@ -396,6 +396,9 @@
     <Compile Include="service\projectsession\update_session_parent.ashx.cs">
       <DependentUpon>update_session_parent.ashx</DependentUpon>
     </Compile>
+    <Compile Include="service\projectsite\copy_tablescheme.ashx.cs">
+      <DependentUpon>copy_tablescheme.ashx</DependentUpon>
+    </Compile>
     <Compile Include="service\projectsite\getprojectsite_byuserid.ashx.cs">
       <DependentUpon>getprojectsite_byuserid.ashx</DependentUpon>
     </Compile>
@@ -5510,6 +5513,7 @@
     <Content Include="service\projectsite\update_new_projectsite.ashx" />
     <Content Include="service\projectsite\getprojectsite_byuserid.ashx" />
     <Content Include="service\basepoint\gettaskbyuseranddepartment.ashx" />
+    <Content Include="service\projectsite\copy_tablescheme.ashx" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

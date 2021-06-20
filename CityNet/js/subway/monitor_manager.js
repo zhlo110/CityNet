@@ -289,6 +289,15 @@
                                                 }
                                             }
                                         },
+                                        {
+                                            xtype: 'button',
+                                            iconCls: 'button modify',
+                                            text: '从其他工点拷贝',
+                                            handler: function () {
+                                                var projectcombox = Ext.getCmp('montor_project_combo_id');
+                                                copyfromothersite(params, projectcombox.getValue(), 'table_scheme_id');
+                                            }
+                                        },
                                         '->',
                                         {
                                             xtype: 'combo',
@@ -585,4 +594,111 @@
             });
         }
     });
+}
+
+function copyfromothersite(params, currentid, gridid) {
+    var panel = Ext.getCmp('copy_fromothersite_windows_id');
+    if (!Ext.isEmpty(panel)) return;
+
+    var combostore = Ext.create('Ext.data.Store', {
+        fields: ['taskid', 'taskname'],
+        model: 'TaskSimpe',
+        proxy: {
+            type: 'ajax',
+            url: '/service/basepoint/getusertask.ashx?params=' + params,
+            extraParams:
+            {
+                excepttaskid: currentid
+            },
+            reader: {
+                type: 'json',
+                rootProperty: 'data',
+                totalProperty: 'totalCount'
+            },
+            autoLoad: true
+        }
+    });
+    combostore.load();
+
+    Ext.create('Ext.window.Window',
+   {
+       id: 'addbasepoint_windows_id',
+       title: '拷贝监测项',
+       height: 145,
+       width: 400,
+       layout: 'fit',
+       modal: true,
+       closable: false,
+       items: [{
+           xtype: 'form',
+           width: '100%',
+           layout: {
+               align: 'middle',
+               pack: 'center'
+           },
+           bodyPadding: '20px',
+           items:
+           [  
+               {
+                   xtype: 'combobox',
+                   name: 'taskid',
+                   fieldLabel: '拷贝的工点*', //此时的项目就是任务
+                   anchor: '100%',
+                   msgTarget: 'under',
+                   editable: false,
+                   padding: 5,
+                   queryMode: 'local',
+                   store: combostore,
+                   displayField: 'taskname',
+                   valueField: 'taskid',
+                   triggerAction: 'all',
+                   forceSelection: true,
+                   allowBlank: false
+               }
+           ],
+           buttonAlign: 'center',
+           buttons: [{
+               text: '数据拷贝',
+               handler: function () {
+                   var form = this.up('form').getForm();
+                   var windows = this.up('window');
+                   var closebutton = Ext.getCmp('close_window_button_id');
+
+                   if (form.isValid()) {
+                       form.submit({
+                           url: '/service/projectsite/copy_tablescheme.ashx?params=' + params,
+                           params: {
+                               destid: currentid
+                           },
+                           success: function (fp, o) {
+                               //显示浏览数据按钮
+                               //从文档中读取表格并存储
+                               var gridpanel = Ext.getCmp(gridid);
+                               var store = gridpanel.getStore();
+                               store.loadPage(store.currentPage);
+                               Ext.Msg.alert('提示', o.result.msg);
+                               windows.close();
+                           },
+                           failure: function (form, action) {
+                               Ext.Msg.alert('提示', action.result.msg);
+                               windows.close();
+                           }
+                       });
+
+
+                   }
+               }
+           },
+           {
+               text: '关闭窗口',
+               id: 'close_window_button_id',
+               handler: function () {
+                   var windows = this.up('window');
+                   windows.close();
+               }
+           }
+
+           ]
+       }]
+   }).show();
 }
