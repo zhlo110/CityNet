@@ -10,10 +10,13 @@ namespace CityNet.Controllers
 {
     public class DBAccess
     {
-      //  public static string strConn
-       //          = "Data Source=10.20.76.187;Initial Catalog=DATA_Manager;Persist Security Info=True;User ID=sa;Password=123456;MultipleActiveResultSets=True";
-        public static string strConn
-                 = "Data Source=localhost;Initial Catalog=CityNet;Persist Security Info=True;User ID=sa;Password=Zjj20130711;MultipleActiveResultSets=True";
+        //网络
+       public static string strConn
+                 = "Data Source=47.108.51.112,9601;Initial Catalog=CityNet;Persist Security Info=True;User ID=zhlo110;Password=Zjj20130711;MultipleActiveResultSets=True";
+
+       //本地
+       //  public static string strConn
+       //          = "Data Source=localhost;Initial Catalog=CityNet;Persist Security Info=True;User ID=sa;Password=Zjj20130711;MultipleActiveResultSets=True";
 
         public static bool Test(string connectStr)
         {
