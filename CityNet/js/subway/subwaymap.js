@@ -20,7 +20,6 @@ function showmappanel(params) {
             var panel = createmappanel(params,json);
             workplace.add(panel);
             createmap(params);
-            addpointto_mainmap(params);
 
         },
         failure: function (response, options) {
@@ -28,15 +27,31 @@ function showmappanel(params) {
     });
 }
 
-
+function schemestoreload(datastore,params) {
+    datastore.loadPage(1, {
+        callback: function (records, operation, success) {
+            var taskid = Ext.getCmp('select_projectsite_id').getValue();//任务ID
+            var schemeid = -1;//监测项ID
+            if (records.length > 0) {
+                schemeid = records[0].data.schid;
+            }
+            addpointto_mainmap(params, taskid, schemeid);
+        }
+    });
+}
 
 function createmappanel(params,json) {
+    
+
     var datastore = Ext.create('Ext.data.Store', {
-        model: 'PointSign',
+        model: 'TableSchemeName',
         pageSize: 15,
         proxy: {
             type: 'ajax',
-            url: '/service/point/get_pointlist_by_user.ashx?params=' + params,
+            url: '/service/document/get_alltablescheme.ashx?params=' + params,
+            extraParams: {
+                taskid: json.taskid
+            },
             reader: {
                 type: 'json',
                 rootProperty: 'roots',
@@ -45,7 +60,8 @@ function createmappanel(params,json) {
             autoLoad: true
         }
     });
-    datastore.loadPage(1);
+    schemestoreload(datastore, params);
+
 
     var combostore = Ext.create('Ext.data.Store', {
         fields: ['taskid', 'taskname'],
@@ -126,7 +142,9 @@ function createmappanel(params,json) {
                                 taskid = -1;
                             }
                             if (!Ext.isEmpty(departmentid)) {
-                                alert(departmentid + ',' + taskid);
+                                //alert(departmentid + ',' + taskid);
+                                datastore.proxy.extraParams.taskid = taskid;
+                                schemestoreload(datastore, params);
                             }   
                         }
                     }
@@ -153,29 +171,20 @@ function createmappanel(params,json) {
                 store: datastore,
                 forceFit: true,
                 scrollable: 'y',
-                viewConfig: {
-                    getRowClass: function (record, rowIndex, rowParams, store) {
-                        if (Ext.isEmpty(record.get("longitude")) || Ext.isEmpty(record.get("latitude")) || Ext.isEmpty(record.get("sign")))
-                            return 'x-grid-red';
-                        else
-                            return 'x-grid-green';
-                    }
-                },
                 columns: [
-                   { header: 'ID', minWidth: 1, hidden: true, sortable: false, menuDisabled: true, draggable: false, dataIndex: 'pointid' },
+                   { header: 'ID', minWidth: 1, hidden: true, sortable: false, menuDisabled: true, draggable: false, dataIndex: 'schid' },
                    {
                        header: '监测项次名称', minWidth: 1, align: 'center',
-                       sortable: false, menuDisabled: true, draggable: false, dataIndex: 'pointname', renderer: rendercell
+                       sortable: false, menuDisabled: true, draggable: false, dataIndex: 'schname', renderer: rendercell
                    }],
                 border: true,
 
                 listeners: {
                     rowclick: function (grid, record, element, rowIndex, e, eOpts) {
-                        if (map != null && !Ext.isEmpty(record.data.latitude) && !Ext.isEmpty(record.data.longitude)) {
-                            map.setView([record.data.latitude, record.data.longitude], 17);
-
-                        }
-                        //  alert(record.data.id);
+                        var schemeid = record.data.schid;
+                        var taskid = Ext.getCmp('select_projectsite_id').getValue();//任务ID
+                        addpointto_mainmap(params, taskid, schemeid);
+                        //alert(record);
                     }
                 },
 
@@ -193,8 +202,8 @@ function createmappanel(params,json) {
                         var textfield = Ext.getCmp('search_point_sign_text_id');
                         var gridpanel = this.up('gridpanel');
                         var store = gridpanel.getStore();
-                        store.proxy.url = '/service/point/get_pointlist_by_user.ashx?params=' + params + '&searchtext=' + textfield.value,
-                        store.loadPage(1);
+                        store.proxy.url = '/service/document/get_alltablescheme.ashx?params=' + params + '&searchtext=' + textfield.value;
+                        schemestoreload(store, params);
                     }
                 }],
                 bbar: Ext.create('Ext.PagingToolbar', {
@@ -206,10 +215,23 @@ function createmappanel(params,json) {
 
             },
             {
-                xtype: 'panel',
+                xtype: 'tabpanel',
                 region: 'center',
-                id: 'index_leaflet_map_panel_id',
-                html: '<div id="mapid" style="height:100%;width:100%;"></div>'
+                items: [{
+                    xtype: 'panel',
+                    title: '地图展示',
+                    id: 'index_leaflet_map_panel_id',
+                    html: '<div id="mapid" style="height:100%;width:100%;"></div>'
+            },{
+                xtype: 'panel',
+                title: '表格展示'
+            },
+            {
+                xtype: 'authoritytappanel',
+                id: 'subway_upload_point_panel_id',
+                params:params,
+                title: '数据上传'
+            }]
             }
         ]
     });
@@ -355,10 +377,15 @@ blinkMarker = function (point, property) {
     return marker;
 }
 
-function addpointto_mainmap(params) {
+//添加点到地图中
+function addpointto_mainmap(params,taskid,schemeid) {
 
     Ext.Ajax.request({
-        url: '/service/point/get_geojson_by_user.ashx?params=' + params,
+        url: '/service/point/get_geojson_by_task_schemeid.ashx?params=' + params,
+        params: {
+            taskid: taskid,
+            schemeid:schemeid
+        },
         success: function (form, action) {
             var geo = Ext.decode(form.responseText);
             if (map != null) {

@@ -22,6 +22,8 @@ namespace CityNet.service.document
             int start = int.Parse(context.Request["start"]);
             int limit = int.Parse(context.Request["limit"]);
             string taskid = context.Request["taskid"];
+            string searchtext = context.Request["searchtext"];
+            
             string condition = "";//"and ts.TaskID is NULL";
             //"and NOT EXISTS(select TableSchemeID from Task_TableScheme where TaskID = " + itaskid.ToString() + ")";
             if (taskid == null)
@@ -38,6 +40,10 @@ namespace CityNet.service.document
             else
             {
                 condition = "and NOT EXISTS(select ID from Task_TableScheme where TableSchemeID = ts.ID)";
+            }
+            if (searchtext != null)
+            {
+                condition += " and ts.Name like '%" + searchtext + "%'";
             }
 
             string sql = "select count(ID) from [TableScheme]";
