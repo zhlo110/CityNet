@@ -339,6 +339,9 @@
     <Compile Include="service\point\get_pointlist_by_user.ashx.cs">
       <DependentUpon>get_pointlist_by_user.ashx</DependentUpon>
     </Compile>
+    <Compile Include="service\point\get_points_by_task_schemeid.ashx.cs">
+      <DependentUpon>get_points_by_task_schemeid.ashx</DependentUpon>
+    </Compile>
     <Compile Include="service\point\get_point_by_taskid.ashx.cs">
       <DependentUpon>get_point_by_taskid.ashx</DependentUpon>
     </Compile>
@@ -5518,6 +5521,7 @@
     <Content Include="service\basepoint\gettaskbyuseranddepartment.ashx" />
     <Content Include="service\projectsite\copy_tablescheme.ashx" />
     <Content Include="service\point\get_geojson_by_task_schemeid.ashx" />
+    <Content Include="service\point\get_points_by_task_schemeid.ashx" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

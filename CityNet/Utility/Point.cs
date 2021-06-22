@@ -191,19 +191,28 @@ namespace CityNet.Utility
         }
 
         //更加taksid获取
-        public static void getSchemeColor(CityNet.Utility.Point point, IList taskids)
+        //schemeid = -1 不指定color,其他值则指定color
+        public static void getSchemeColor(CityNet.Utility.Point point, IList taskids,int schemeid)
         {
             int i;
             int nCount;
             string inconditon = Point.getincondition(taskids);
             
             string pointid = point.IDS[0].ToString();//新的pointID,如果经纬度一致，该ID要与其他的Point合并
-            string sql = "select color from TableScheme where ID in"
-                + "(select distinct SchemeID from Point_User_View where PointID=@pid and TaskID in(" + inconditon + "))";
-         //   sql = "exec('"+sql+"')";
+            string sql = "";
             IList list = new ArrayList();
-            list.Add(new DictionaryEntry("@pid", pointid));
-            list.Add(new DictionaryEntry("@inconditon", inconditon));
+            if (schemeid == -1)
+            {
+                sql = "select color from TableScheme where ID in"
+                    + "(select distinct SchemeID from Point_User_View where PointID=@pid and TaskID in(" + inconditon + "))";
+                list.Add(new DictionaryEntry("@pid", pointid));
+                list.Add(new DictionaryEntry("@inconditon", inconditon));
+            }
+            else
+            {
+                sql = "select color from TableScheme where ID = @tsid";
+                list.Add(new DictionaryEntry("@tsid", schemeid));
+            }
             DataSet ds = DBAccess.Query(sql, "TableScheme", list);
             if (ds != null)
             {

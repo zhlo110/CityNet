@@ -84,7 +84,7 @@ namespace CityNet.service.point
                             p.Names.Add(PointName);
                             p.latitude = dlatitude;
                             p.longitude = dlongitude;
-                            CityNet.Utility.Point.getSchemeColor(p, taskids);
+                            CityNet.Utility.Point.getSchemeColor(p, taskids,-1);
                             Set.Add(p);
                         }
                     }

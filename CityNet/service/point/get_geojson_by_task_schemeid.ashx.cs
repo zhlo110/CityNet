@@ -65,14 +65,12 @@ namespace CityNet.service.point
                             p.Names.Add(PointName);
                             p.latitude = dlatitude;
                             p.longitude = dlongitude;
-                            CityNet.Utility.Point.getSchemeColor(p, taskids);
+                            CityNet.Utility.Point.getSchemeColor(p, taskids, schemeid);
                             Set.Add(p);
                         }
                     }
-
                     foreach (CityNet.Utility.Point s in Set)
                     {
-                        //;
                         str += "{\"type\": \"Feature\"," +
                                 "\"properties\": {" +
                                 "\"name\": " + CityNet.Utility.Point.getArrayListStr(s.Names, ",") + "," +

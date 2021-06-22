@@ -318,14 +318,17 @@ function createmap(params) {
 }
 
 function addlegend(params) {
-    if (legend != null) {
-        map.removeControl(legend);
-        legend = null;
-    }
+   
 
    Ext.Ajax.request({
        url: '/service/point/getscheme_legendbyuser.ashx?params=' + params,
        success: function (response) {
+
+           if (legend != null) {
+               map.removeControl(legend);
+               legend = null;
+           }
+
            var json = Ext.decode(response.responseText);
            legend = L.control.legend({ position: 'bottomright', json: json });
            //添加图例
