@@ -1,6 +1,6 @@
 ﻿
 var map = null;
-
+var legend = null;
 //监测点地图展示
 function monitor_map(params) {
     showmappanel(params)
@@ -27,6 +27,19 @@ function showmappanel(params) {
     });
 }
 
+function schemechangeevent(params, taskid, schemeid) {
+    pointsignmap = map;
+    removepoiintfrommap();
+    addlegend(params);
+    addpointto_mainmap(params, taskid, schemeid);
+    var uploadpanel = Ext.getCmp('subway_upload_point_panel_id');
+    uploadpanel.removeAll();
+    if (taskid > 0 && schemeid > 0) {
+        var docliststore = createdocumentstore(taskid, params);
+        upload_point(uploadpanel, params, docliststore, taskid, schemeid);
+    }
+}
+
 function schemestoreload(datastore,params) {
     datastore.loadPage(1, {
         callback: function (records, operation, success) {
@@ -35,7 +48,7 @@ function schemestoreload(datastore,params) {
             if (records.length > 0) {
                 schemeid = records[0].data.schid;
             }
-            addpointto_mainmap(params, taskid, schemeid);
+            schemechangeevent(params,taskid,schemeid);
         }
     });
 }
@@ -183,7 +196,8 @@ function createmappanel(params,json) {
                     rowclick: function (grid, record, element, rowIndex, e, eOpts) {
                         var schemeid = record.data.schid;
                         var taskid = Ext.getCmp('select_projectsite_id').getValue();//任务ID
-                        addpointto_mainmap(params, taskid, schemeid);
+                        schemechangeevent(params, taskid, schemeid);
+                        //addpointto_mainmap(params, taskid, schemeid);
                         //alert(record);
                     }
                 },
@@ -229,7 +243,8 @@ function createmappanel(params,json) {
             {
                 xtype: 'authoritytappanel',
                 id: 'subway_upload_point_panel_id',
-                params:params,
+                params: params,
+                layout:'fit',
                 title: '数据上传'
             }]
             }
@@ -241,74 +256,82 @@ function createmappanel(params,json) {
 
 
 function createmap(params) {
-    Ext.Ajax.request({
-        url: '/service/point/getscheme_legendbyuser.ashx?params=' + params,
-        success: function (response) {
-            var json = Ext.decode(response.responseText);
-            var Google = L.tileLayer.chinaProvider('Google.Normal.Map', {
-                maxZoom: 18,
-                minZoom: 5
-            });
-            var GoogleAnn = L.tileLayer.chinaProvider('Google.Normal.Annotion', {
-                maxZoom: 18,
-                minZoom: 5
-            });
-            var Googleimgem = L.tileLayer.chinaProvider('Google.Satellite.Map', {
-                maxZoom: 18,
-                minZoom: 5
-            });
-            var Googleimga = L.tileLayer.chinaProvider('Google.Satellite.Annotion', {
-                maxZoom: 18,
-                minZoom: 5
-            });
-            var Googleimage = L.layerGroup([Googleimgem, Googleimga]);
-            var Googlest = L.layerGroup([Google, GoogleAnn]);
 
-            var baseLayers = {
-                "标准地图": Googlest,
-                "影像地图": Googleimage
-            }
-            var maplayers = Googlest;
-            var lat = 30.62351686255914;
-            var lng = 103.98707171672822;
-            var zoom = 17;
-            if (map != null) {
-                lat = map.getCenter().lat;
-                lng = map.getCenter().lng;
-                zoom = map.getZoom();
-                var layercount = 0;
-                map.eachLayer(function (layer) {
-                    if (layercount < layer.options.maxZoom) {
-                        layercount = layer.options.maxZoom;
-                    }
-                    // layercount = layercount + 1;
-                });
-                if (layercount > 18) {
-                    maplayers = Googleimage;
-                }
-            }
-
-            map = L.map("mapid", {
-                center: [lat, lng],
-                zoom: zoom,
-                layers: [maplayers],
-                zoomControl: false,
-                trackResize: true,
-                attributionControl: false
-            });
-            L.control.layers(baseLayers, null).addTo(map);
-            L.control.zoom({
-                zoomInTitle: '放大',
-                zoomOutTitle: '缩小'
-            }).addTo(map);
-
-
-            var legend = L.control.legend({ position: 'bottomright', json: json });
-            //添加图例
-            legend.addTo(map);
-
-        }
+    var Google = L.tileLayer.chinaProvider('Google.Normal.Map', {
+        maxZoom: 18,
+        minZoom: 5
     });
+    var GoogleAnn = L.tileLayer.chinaProvider('Google.Normal.Annotion', {
+        maxZoom: 18,
+        minZoom: 5
+    });
+    var Googleimgem = L.tileLayer.chinaProvider('Google.Satellite.Map', {
+        maxZoom: 18,
+        minZoom: 5
+    });
+    var Googleimga = L.tileLayer.chinaProvider('Google.Satellite.Annotion', {
+        maxZoom: 18,
+        minZoom: 5
+    });
+    var Googleimage = L.layerGroup([Googleimgem, Googleimga]);
+    var Googlest = L.layerGroup([Google, GoogleAnn]);
+
+    var baseLayers = {
+        "标准地图": Googlest,
+        "影像地图": Googleimage
+    }
+    var maplayers = Googlest;
+    var lat = 30.62351686255914;
+    var lng = 103.98707171672822;
+    var zoom = 17;
+    if (map != null) {
+        lat = map.getCenter().lat;
+        lng = map.getCenter().lng;
+        zoom = map.getZoom();
+        var layercount = 0;
+        map.eachLayer(function (layer) {
+            if (layercount < layer.options.maxZoom) {
+                layercount = layer.options.maxZoom;
+            }
+            // layercount = layercount + 1;
+        });
+        if (layercount > 18) {
+            maplayers = Googleimage;
+        }
+    }
+
+    map = L.map("mapid", {
+        center: [lat, lng],
+        zoom: zoom,
+        layers: [maplayers],
+        zoomControl: false,
+        trackResize: true,
+        attributionControl: false
+    });
+    L.control.layers(baseLayers, null).addTo(map);
+    L.control.zoom({
+        zoomInTitle: '放大',
+        zoomOutTitle: '缩小'
+    }).addTo(map);
+
+   
+}
+
+function addlegend(params) {
+    if (legend != null) {
+        map.removeControl(legend);
+        legend = null;
+    }
+
+   Ext.Ajax.request({
+       url: '/service/point/getscheme_legendbyuser.ashx?params=' + params,
+       success: function (response) {
+           var json = Ext.decode(response.responseText);
+           legend = L.control.legend({ position: 'bottomright', json: json });
+           //添加图例
+           legend.addTo(map);
+       }
+   });
 }
 
 var makercount = 0;
@@ -405,9 +428,6 @@ function addpointto_mainmap(params,taskid,schemeid) {
                         else {
                             sign = L.marker(latlng, { opacity: 0.8, icon: greenIcon, pointid: feature.properties.pointid });
                         }
-
-
-                        //     var 
                         sign.on({
                             click: function (e) {
                                 window.open('../Home/PointDetail?params=' + params + '&pointid=' + e.target.options.pointid);

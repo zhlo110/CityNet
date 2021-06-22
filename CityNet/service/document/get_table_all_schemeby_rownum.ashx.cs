@@ -23,10 +23,24 @@ namespace CityNet.service.document
             {
                 icolumns = 0;
             }
+            int taskid = this.stringtoint(context.Request["taskid"],-1);
+            int schemeid = this.stringtoint(context.Request["schemeid"], -1);
+            string sql = "";
+
             //找推荐方案,条件 方案有效，列的个数与参数同
-            string sql = "select Name,ID from TableScheme_View where valid = 1 and RowNum = @rn and TaskID is NULL";
             IList list = new ArrayList();
             list.Add(new DictionaryEntry("@rn", icolumns));
+            if (taskid > 0 && schemeid > 0)
+            {
+                sql = "select Name,ID from TableScheme_View where valid = 1 and RowNum = @rn and ID in(select TableSchemeID from Task_TableScheme where TaskID=@tid)";
+                list.Add(new DictionaryEntry("@tid", taskid));
+                
+            }
+            else
+            {
+                sql = "select Name,ID from TableScheme_View where valid = 1 and RowNum = @rn and ID not in(select TableSchemeID from Task_TableScheme)";
+            }
+           
             DataSet ds = DBAccess.Query(sql, "TableScheme_View", list);
             string str = "";
             if (ds != null)
@@ -41,7 +55,14 @@ namespace CityNet.service.document
                         DataRow row = dt.Rows[i];
                         string Name = DatabaseUtility.getStringValue(row, "Name");
                         int ID = DatabaseUtility.getIntValue(row, "ID", -1);
-                        str += "{name:'" + Name+ "',schid:" + ID.ToString() + "},";
+                        if (schemeid > 0 && ID == schemeid)
+                        {
+                            str = "{name:'" + Name + "',schid:" + ID.ToString() + "}," + str;
+                        }
+                        else
+                        {
+                            str += "{name:'" + Name + "',schid:" + ID.ToString() + "},";
+                        }
                     }
                 }
             }

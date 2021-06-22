@@ -24,20 +24,29 @@ namespace CityNet.service.document
             {
                 icolumns = 0;
             }
+            int schemeid = this.stringtoint(context.Request["schemeid"], -1);
+ 
             //找推荐方案,条件 方案有效，是推荐方案，列的个数与参数同
             string sql = "select count(ID) from TableScheme_View where valid = 1 and RowNum = @rn and Priority=1";
             IList list = new ArrayList();
             list.Add(new DictionaryEntry("@rn", icolumns));
+            string condition = "";
+            if (schemeid > 0)
+            {
+                condition = " and [ID] = @schid ";
+                list.Add(new DictionaryEntry("@schid", schemeid));
+                sql += condition;
+            }
             int Priority = DBAccess.QueryStatistic(sql, list);
             if (Priority > 0) //有推荐方案
             {
                 sql = "select trs.*,tsv.hasprojection from TableRowScheme trs left join TableScheme_View tsv on trs.TableSchemeID = tsv.ID where trs.TableSchemeID=" +
-                      "(select top 1 [ID] from TableScheme_View where valid = 1 and RowNum = @rn and Priority=1) order by trs.No";
+                      "(select top 1 [ID] from TableScheme_View where valid = 1 and RowNum = @rn and Priority=1" + condition + ") order by trs.No";
             }
             else//没有推荐方案，找最新方案
             {
                 sql = "select trs.*,tsv.hasprojection from TableRowScheme trs left join TableScheme_View tsv on trs.TableSchemeID = tsv.ID where trs.TableSchemeID=" +
-                     "(select top 1 [ID] from TableScheme_View where valid = 1 and RowNum = @rn order by ID desc) order by trs.No ";
+                     "(select top 1 [ID] from TableScheme_View where valid = 1 and RowNum = @rn" + condition + " order by ID desc) order by trs.No ";
             }
             DataSet ds = DBAccess.Query(sql, "TableRowScheme", list);
             string str = "";

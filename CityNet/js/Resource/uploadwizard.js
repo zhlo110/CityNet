@@ -183,7 +183,7 @@ function createuploadwizardImp(workplace, params, userjson, taskjson) {
                 activate: function (panel, eOpts) {
                     var panel = Ext.getCmp('card_navigation_id');
                     var docliststore = createdocumentstore(panel.taskid, params);
-                    upload_point(this, params, userjson, docliststore);
+                    upload_point(this, params, docliststore,panel.taskid,-1);
                 }
             }
         }, 
@@ -583,7 +583,7 @@ function uploadwindows(gridid, params, taskid, isresult,inserttemptable) {
     }).show();
 }
 
-function parseDocData(tableid, documentid,params)
+function parseDocData(tableid, documentid, params, taskid, schemeid)
 {
     //获取解析数据，并显示到面板中
     var showpanel = Ext.getCmp('show_parsetable_id');
@@ -602,7 +602,8 @@ function parseDocData(tableid, documentid,params)
                 Ext.Ajax.request({
                     url: '/service/document/get_table_schemeby_rownum.ashx?params=' + params,
                     params: {
-                        columns: num
+                        columns: num,
+                        schemeid: schemeid
                     },
                     success: function (form, action) {
                         var i;
@@ -649,6 +650,28 @@ function parseDocData(tableid, documentid,params)
                             }
                         });
                         datastore.load();
+                        var comboxstore = Ext.create('Ext.data.Store', {
+                            fields: ['name', 'schid'],
+                            proxy: {
+                                type: 'ajax',
+                                url: '/service/document/get_table_all_schemeby_rownum.ashx?params=' + params,
+                                extraParams: {
+                                    columns: num,
+                                    taskid: taskid,
+                                    schemeid: schemeid
+                                },
+                                reader: {
+                                    type: 'json'
+                                }
+                            }
+                        });
+                        comboxstore.load({
+                            callback: function (records, operation, success) {
+                                var comboxvalue = null;
+                                if (records.length > 0 && records[0].data.schid == schemeid && schemeid > 0) {
+                                    comboxvalue = schemeid;
+                                }
+
                         var gridpanel = Ext.create('Ext.grid.Panel', {
                             columns: columns,
                             minwidth: 1,
@@ -682,6 +705,7 @@ function parseDocData(tableid, documentid,params)
                                     emptyText: '选择表格入库方案',
                                     displayField: 'name',
                                     valueField: 'schid',
+                                    value: comboxvalue,
                                     listeners: {
                                         change: function (combo, newValue, oldValue, eOpts)
                                         {
@@ -713,20 +737,7 @@ function parseDocData(tableid, documentid,params)
                                             }
                                         }
                                     },
-                                    store: {
-                                        fields: ['name', 'schid'],
-                                        proxy: {
-                                            type: 'ajax',
-                                            url: '/service/document/get_table_all_schemeby_rownum.ashx?params=' + params,
-                                            extraParams: {
-                                                columns: num
-                                            },
-                                            reader: {
-                                                type: 'json'
-                                            },
-                                            autoLoad: true
-                                        }
-                                    }
+                                    store: comboxstore
                                 },
                                 '',
                                 {
@@ -763,9 +774,9 @@ function parseDocData(tableid, documentid,params)
                             ],
                             forceFit: true
                         });
-
                         showpanel.add(gridpanel);
-
+                            }
+                        });
                     }
                 });
             }

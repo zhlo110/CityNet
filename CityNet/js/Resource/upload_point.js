@@ -1,4 +1,4 @@
-﻿function upload_point(panel, params, userjson, docliststore) {
+﻿function upload_point(panel,params,docliststore,taskid,schemeid) {
     
     panel.add(
     {
@@ -97,8 +97,7 @@
                     text: '文档上传',
                     iconCls: 'button add',
                     handler: function () {
-                        var panel = Ext.getCmp('card_navigation_id');
-                        uploadwindows('document_girdlist_id', params, panel.taskid, 1,0);
+                        uploadwindows('document_girdlist_id', params, taskid, 1,0);
                     }
                 },
                 {
@@ -231,7 +230,6 @@
                     //
                     //获取解析的数据
                     var workspace = Ext.getCmp('pick_workspace_id');
-                    var cardpanel = Ext.getCmp('card_navigation_id');
                     workspace.removeAll();
                     if (record.length <= 0) return;
 
@@ -242,7 +240,7 @@
                             type: 'ajax',
                             url: '/service/document/get_pointlist_byuserid.ashx?params=' + params,
                             extraParams: {
-                                taskid: cardpanel.taskid
+                                taskid: taskid
                             },
                             reader: {
                                 type: 'json',
@@ -302,14 +300,13 @@
                                     text: '全部清除',
                                     iconCls: 'button delete',
                                     handler: function () {
-                                        var cardpanel = Ext.getCmp('card_navigation_id');
                                         var gridpanel = this.up('gridpanel');
                                         Ext.MessageBox.confirm("提示", "是否要全部清除上传的数据？", function (btnId) {
                                             if (btnId == "yes") {
                                                 Ext.Ajax.request({
                                                     url: '/service/document/delete_allpoint_in_task.ashx?params=' + params,
                                                     params: {
-                                                        taskid: cardpanel.taskid
+                                                        taskid: taskid
                                                     },
                                                     success: function (form, action) {
                                                         var errorjson = Ext.decode(form.responseText);
@@ -337,7 +334,6 @@
                                     iconCls: 'button search',
                                     handler: function () {
                                         var textfield = Ext.getCmp('search_point_text_id');
-                                        var cardpanel = Ext.getCmp('card_navigation_id');
                                         var gridpanel = this.up('gridpanel');
                                         var store = gridpanel.getStore();
                                         store.proxy.url = '/service/document/get_pointlist_byuserid.ashx?params='
@@ -423,7 +419,6 @@
                                         if (!Ext.isEmpty(panel)) {
                                             panel.destroy();
                                         }
-                                        var cardpanel = Ext.getCmp('card_navigation_id');
                                         var treestore = new Ext.data.TreeStore(
                                         {
                                             autoSync: false,
@@ -432,7 +427,7 @@
                                                 url: '/service/document/getpoints_tree_by_pointid.ashx?params=' + params,
                                                 extraParams: {
                                                     pointid: record.id,
-                                                    taskid: cardpanel.taskid
+                                                    taskid: taskid
                                                 },
                                                 reader: 'json'
                                             },
@@ -512,7 +507,7 @@
 
                     });
 
-                    parseDocData(record[0].data.tableid, record[0].data.documentid, params);
+                    parseDocData(record[0].data.tableid, record[0].data.documentid, params, taskid, schemeid);
 
                     //获取原始数据
                     Ext.Ajax.request({
