@@ -280,6 +280,17 @@ namespace CityNet.Utility
             return str;
         }
 
+        public static string GetPointColor(HashSet<string> Colors)
+        {
+            string color = "#FFFFFF";//只取一行
+            foreach (string c in Colors)
+            {
+                color = c;
+                break;
+            }
+            return color;
+        }
+
         public static string GenPie(int userid, string filename, HttpContext context, HashSet<string> Colors)
         {
             int picsize = 32;

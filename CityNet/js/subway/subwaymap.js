@@ -28,6 +28,16 @@ function showmappanel(params) {
 }
 
 function schemechangeevent(params, taskid, schemeid) {
+
+    var mMask = Ext.getCmp("shemechangeevent_task_id");
+    if (Ext.isEmpty(mMask)) {
+        myMask = new Ext.LoadMask({
+            id: 'shemechangeevent_task_id',
+            target: Ext.getCmp('index_workplace_id'),
+            msg: '正在请求数据，请稍后！'
+        });
+    }
+    myMask.show();
     pointsignmap = map;
     removepoiintfrommap();
     addlegend(params);
@@ -36,8 +46,15 @@ function schemechangeevent(params, taskid, schemeid) {
     uploadpanel.removeAll();
     if (taskid > 0 && schemeid > 0) {
         var docliststore = createdocumentstore(taskid, params);
-        upload_point(uploadpanel, params, docliststore, taskid, schemeid);
+        upload_point(uploadpanel, params, docliststore, taskid, schemeid); //数据上传面板
+        //表格
+        gengridpanel();
     }
+}
+
+function gengridpanel(params) {
+    var panel = Ext.getCmp('point_table_panel_id');
+    panel.add();
 }
 
 function schemestoreload(datastore,params) {
@@ -197,8 +214,6 @@ function createmappanel(params,json) {
                         var schemeid = record.data.schid;
                         var taskid = Ext.getCmp('select_projectsite_id').getValue();//任务ID
                         schemechangeevent(params, taskid, schemeid);
-                        //addpointto_mainmap(params, taskid, schemeid);
-                        //alert(record);
                     }
                 },
 
@@ -235,12 +250,13 @@ function createmappanel(params,json) {
                     xtype: 'panel',
                     title: '地图展示',
                     id: 'index_leaflet_map_panel_id',
-                    html: '<div id="mapid" style="height:100%;width:100%;"></div>'
+                    html: '<div id="mapid" style="height:100%;width:100%;z-index:1;"></div>'
             },{
                 xtype: 'panel',
-                title: '表格展示'
-            },
-            {
+                title: '表格展示',
+                id: 'point_table_panel_id',
+                layout: 'fit'
+            },{
                 xtype: 'authoritytappanel',
                 id: 'subway_upload_point_panel_id',
                 params: params,
@@ -338,8 +354,7 @@ function addlegend(params) {
 }
 
 var makercount = 0;
-blinkMarker = function (point, property) {
-    // 使用js标签,便于操作,这个temDivEle的作用是将divEle通过innerHTML的方式获取为字符串
+blinkSolidMarker = function (point, property) {
     var tempDivEle = document.createElement("div");
     var divEle = document.createElement("div");
     var spanEl = document.createElement("span");
@@ -347,23 +362,18 @@ blinkMarker = function (point, property) {
     tempDivEle.append(divEle);
     divEle.append(spanEl);
     spanEl.append(aEl);
-
-
     // 设置上基础的样式
-
-    Ext.util.CSS.createStyleSheet(".makercss_" + makercount + "{display: inline-block;width: 21px;height: 21px;border-radius: 100%;background-position:center;background-image: url(" +
-        property.icon.options.iconUrl + ");background-size:100% 100%;position: relative;box-shadow: 1px 1px 5px 0 rgba(0, 0, 0, 0.1);}", "red");
-
-    spanEl.classList.add("makercss_" + makercount);
-    makercount = makercount + 1;
+    spanEl.classList.add("block-pulse-icon");
     aEl.classList.add("dive-icon");
     // 操作样式
-
-    //sheet = style.sheet;
+    var style = document.createElement("style");
+    style.type = "text/css";
+    document.head.appendChild(style);
+    sheet = style.sheet;
     // 主体颜色
     if (property) {
         if (property.color) {
-            //        spanEl.style.backgroundImage = 'url('+property.icon+')';
+            spanEl.style.backgroundColor = property.color;
             if (!property.diveColor) {
                 aEl.style.boxShadow = "0 0 6px 2px " + property.color;
             }
@@ -399,12 +409,13 @@ blinkMarker = function (point, property) {
         }
     }
     var myIcon = L.divIcon({ className: 'my-div-icon', html: tempDivEle.innerHTML });
-    var marker = L.marker(point, { icon: myIcon, opacity: property.opacity, pointid: property.pointid, title: property.title });
+    var marker = L.marker(point, { icon: myIcon, title: property.title });
     return marker;
 }
 
 //添加点到地图中
 function addpointto_mainmap(params,taskid,schemeid) {
+    //由于该过程比较慢，在加载的时候把界面中的元素关闭
 
     Ext.Ajax.request({
         url: '/service/point/get_geojson_by_task_schemeid.ashx?params=' + params,
@@ -417,19 +428,30 @@ function addpointto_mainmap(params,taskid,schemeid) {
             if (map != null) {
                 L.geoJSON(geo, {
                     pointToLayer: function (feature, latlng) {
-                        var greenIcon = L.icon({
+                        /*var greenIcon = L.icon({
                             iconUrl: feature.properties.colors,
                             iconSize: [20, 20], // size of the icon
-                        });
+                        });*/
+
+                        var geojsonMarkerOptions = {
+                            radius: 10,
+                            fillColor:feature.properties.colors,
+                            color: "#000",
+                            weight: 1,
+                            opacity: 1,
+                            fillOpacity: 0.8
+                        };
+
                         var sign = null;
                         if (feature.properties.isalarm == 1) {
-                            sign = blinkMarker(latlng, {
+                            sign = blinkSolidMarker(latlng, {
                                 iconSize: [20, 20], opacity: 1,
-                                icon: greenIcon, pointid: feature.properties.pointid, color: feature.properties.alarmcolor, speedTime: 1.0
+                                diveColor: feature.properties.alarmcolor, pointid: feature.properties.pointid, color: feature.properties.colors, speedTime: 1.0
                             }).addTo(map);
                         }
                         else {
-                            sign = L.marker(latlng, { opacity: 0.8, icon: greenIcon, pointid: feature.properties.pointid });
+                            sign = L.circleMarker(latlng, geojsonMarkerOptions);
+                            // sign = L.marker(latlng, { opacity: 0.8, icon: greenIcon, pointid: feature.properties.pointid });
                         }
                         sign.on({
                             click: function (e) {
@@ -455,6 +477,13 @@ function addpointto_mainmap(params,taskid,schemeid) {
                     }
                 }).addTo(map);
             }
+
+            var loadmask = Ext.getCmp('shemechangeevent_task_id');
+            loadmask.hide();
+        },
+        failure: function (response, opts) {
+            var loadmask = Ext.getCmp('shemechangeevent_task_id');
+            loadmask.hide();
         }
     });
 }

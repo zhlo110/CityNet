@@ -159,6 +159,21 @@ Ext.define('TableSchemeName', {
     ]
 });
 
+Ext.define('TableSchemePoint', {
+    extend: 'Ext.data.Model',
+    fields: [
+        { name: 'pointid', type: 'int' },
+        { name: 'longitude', type: 'string' },
+        { name: 'latitude', type: 'string' },
+        { name: 'number', type: 'int' },
+        { name: 'pointname', type: 'string' },
+        { name: 'first', type: 'string' },
+        { name: 'end', type: 'string' }
+    ]
+});
+
+
+
 Ext.define('TableSchemeRow', {
     extend: 'Ext.data.Model',
     fields: [

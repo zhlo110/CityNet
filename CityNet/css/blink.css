@@ -8,6 +8,18 @@
     box-shadow: 1px 1px 5px 0 rgba(0, 0, 0, 0.1);
 }
 
+.block-pulse-icon {
+    display: inline-block;
+    border-style:solid;
+    border-width:1px;
+    width: 15px;
+    height: 15px;
+    border-radius: 100%;
+    background-color: red;
+    position: relative;
+    box-shadow: 1px 1px 5px 0 rgba(0, 0, 0, 0.1);
+}
+
 .dive-icon {
     content: "";
     box-shadow: 0 0 6px 2px red;

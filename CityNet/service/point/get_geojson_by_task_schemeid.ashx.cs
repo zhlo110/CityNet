@@ -69,12 +69,33 @@ namespace CityNet.service.point
                             Set.Add(p);
                         }
                     }
+              //      int kount = 0;
                     foreach (CityNet.Utility.Point s in Set)
                     {
+                        int alarmid = 0;
+                        string alarmcolors = "";
+                        s.calculateAlarm(out alarmid, out alarmcolors);
+                        if (alarmid > 0)
+                        {
+                            alarmid = 1;
+                        }
+                        else
+                        {
+                            alarmcolors = "#FFFFFF";
+                        }
+                       
+                        /*kount++;
+                        if (kount % 2 == 0)
+                        {
+                            alarmid = 1;
+                            alarmcolors = "#FF0000";
+                        }*/
                         str += "{\"type\": \"Feature\"," +
                                 "\"properties\": {" +
                                 "\"name\": " + CityNet.Utility.Point.getArrayListStr(s.Names, ",") + "," +
-                                "\"colors\": " + CityNet.Utility.Point.GenPie(userid, CityNet.Utility.Point.getArrayListStr(s.Names, "_"), context, s.Colors) + "," +
+                                "\"colors\": '" + CityNet.Utility.Point.GetPointColor(s.Colors) + "'," +
+                                "\"isalarm\":" + alarmid.ToString() + "," +
+                                "\"alarmcolor\":\"" + alarmcolors + "\"," +
                                 "\"pointid\": " + CityNet.Utility.Point.getArrayListStr(s.IDS, ",") + "}," +
                                 "\"geometry\": {" +
                                 "\"type\": \"Point\"," +
