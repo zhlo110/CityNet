@@ -48,13 +48,64 @@ function schemechangeevent(params, taskid, schemeid) {
         var docliststore = createdocumentstore(taskid, params);
         upload_point(uploadpanel, params, docliststore, taskid, schemeid); //数据上传面板
         //表格
-        gengridpanel();
+        gengridpanel(params, taskid, schemeid);
     }
 }
 
-function gengridpanel(params) {
+function gengridpanel(params, taskid, schemeid) {
     var panel = Ext.getCmp('point_table_panel_id');
-    panel.add();
+    panel.removeAll();
+    var datastore = Ext.create('Ext.data.Store', {
+        model: 'TableSchemePoint',
+        pageSize: 15,
+        proxy: {
+            type: 'ajax',
+            url: '/service/point/get_points_by_task_schemeid.ashx?params=' + params,
+            extraParams: {
+                taskid: taskid,
+                schemeid: schemeid
+            },
+            reader: {
+                type: 'json',
+                rootProperty: 'roots',
+                totalProperty: 'totalCount'
+            },
+            autoLoad: true
+        }
+    });
+    datastore.loadPage(1);
+
+    panel.add({
+        xtype: 'gridpanel',
+        forceFit: true,
+        store: datastore,
+        columns: [
+        { header: 'ID', minWidth: 1, hidden: true, sortable: false, menuDisabled: true, draggable: false, dataIndex: 'pointid' },
+        {
+            header: '点名', minWidth: 1, align: 'center', renderer: rendercell,
+            sortable: false, menuDisabled: true, draggable: false, dataIndex: 'pointname'
+        },
+        {
+            header: '经度', minWidth: 1, align: 'center', renderer: rendercell,
+            sortable: false, menuDisabled: true, draggable: false, dataIndex: 'longitude'
+        },
+        { header: '纬度', align: 'center', renderer: rendercell, minWidth: 1, sortable: false, menuDisabled: true, draggable: false, dataIndex: 'latitude' },
+        { header: '上传次数', align: 'center', renderer: rendercell, minWidth: 1, sortable: false, menuDisabled: true, draggable: false, dataIndex: 'number' },
+        {
+            header: '首次上传时间', minWidth: 1, align: 'center', renderer: rendercell,
+            sortable: false, menuDisabled: true, draggable: false, dataIndex: 'first'
+        },
+        {
+            header: '最新上传时间', minWidth: 1, align: 'center', renderer: rendercell,
+            sortable: false, menuDisabled: true, draggable: false, dataIndex: 'end'
+        }],
+        bbar: Ext.create('Ext.PagingToolbar', {
+            store: datastore,
+            displayInfo: true,
+            displayMsg: '显示的条目 {0} - {1} of {2}',
+            emptyMsg: "没有下载项目"
+        })
+    });
 }
 
 function schemestoreload(datastore,params) {

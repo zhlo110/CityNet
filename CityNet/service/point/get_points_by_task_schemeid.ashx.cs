@@ -38,6 +38,7 @@ namespace CityNet.service.point
             IList list = new ArrayList();
             list.Add(new DictionaryEntry("@tid", taskid));
             list.Add(new DictionaryEntry("@sid", schemeid));
+            list.Add(new DictionaryEntry("@uid", userid));
             int totalCount = DBAccess.QueryStatistic(sql, list);
 
              sql =
